@@ -289,3 +289,20 @@ class Engine:
                 )
             )
         return fuls
+
+    # ---------- группа
+    def determine_group(self, f: Ful):
+        if f.method_state == "empty":
+            return None, "не указан способ доставки"
+        if f.method_state == "unknown":
+            return None, f"незнакомый способ доставки «{f.method_raw}»"
+        if f.method == self.r["air_method"]:
+            return "AIR", "способ доставки air → авиаперевозки"
+        if f.is_china is None:
+            return (
+                None,
+                f"способ доставки {f.method}, страна отправления не указана — для не-air группа зависит от страны",
+            )
+        if f.is_china:
+            return "VED", f"{f.method}, страна «{f.country}» (Китай) → ВЭД"
+        return "MULTI", f"{f.method}, страна «{f.country}» (не Китай) → мультимодальные перевозки"
