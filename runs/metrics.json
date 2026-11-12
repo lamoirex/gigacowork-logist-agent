@@ -106,10 +106,10 @@
     "reasons_ok_all": true,
     "reproducible": true,
     "hashes": [
-      "8876a9046483fa66"
+      "e3b3fa4fa052dba4"
     ],
-    "time_avg_s": 0.36,
-    "time_max_s": 0.43,
+    "time_avg_s": 0.43,
+    "time_max_s": 0.44,
     "answer_ok": [
       null,
       null,
@@ -226,10 +226,10 @@
     "reasons_ok_all": true,
     "reproducible": true,
     "hashes": [
-      "48828d18a8727825"
+      "a3f4dbf3265c7d8e"
     ],
-    "time_avg_s": 0.36,
-    "time_max_s": 0.4,
+    "time_avg_s": 0.41,
+    "time_max_s": 0.44,
     "answer_ok": [
       null,
       null,
@@ -346,10 +346,10 @@
     "reasons_ok_all": true,
     "reproducible": true,
     "hashes": [
-      "f7bdd9d366d81d51"
+      "91bbcd83e6d5363d"
     ],
-    "time_avg_s": 0.3,
-    "time_max_s": 0.38,
+    "time_avg_s": 0.28,
+    "time_max_s": 0.3,
     "answer_ok": [
       null,
       null,
