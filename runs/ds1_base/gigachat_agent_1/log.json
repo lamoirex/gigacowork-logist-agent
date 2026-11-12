@@ -21,13 +21,13 @@
             ]
           }
         },
-        "functions_state_id": "01a1cf6f-cf9e-7e14-8758-a61e697823ae"
+        "functions_state_id": "01a1cf75-87ee-7d44-82e5-61734ca11730"
       },
       "usage": {
-        "prompt_tokens": 2366,
+        "prompt_tokens": 1381,
         "completion_tokens": 73,
-        "total_tokens": 2439,
-        "precached_prompt_tokens": 3
+        "total_tokens": 1454,
+        "precached_prompt_tokens": 1024
       },
       "finish_reason": "function_call"
     },
@@ -50,12 +50,12 @@
       "model": {
         "content": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 20 (с логистом — 14, без логиста — 6)\n• Повторных отправок: 5 (заказ уже в Cloud — 4, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 13 (срочных — 7)\n• Черновиков писем логистам: 4\nСрочно:\n  – нет номера заказа — строка не создана: УЛ-26-0108\n  – группа не определена (нет или незнакомый способ доставки / страна): УЛ-26-0111, УЛ-26-0112\n  – в группе нет доступных логистов: УЛ-26-0105, УЛ-26-0118, УЛ-26-0121, УЛ-26-0125\nПодробности — на листах «Требует внимания», «Журнал решений» и «Письма логистам».",
         "role": "assistant",
-        "functions_state_id": "01a1cf6f-e7c1-775b-96d5-2e199ba9b24d"
+        "functions_state_id": "01a1cf75-a7c5-741d-aaac-4b953ad63d8d"
       },
       "usage": {
-        "prompt_tokens": 3076,
+        "prompt_tokens": 3112,
         "completion_tokens": 243,
-        "total_tokens": 3319,
+        "total_tokens": 3355,
         "precached_prompt_tokens": 3
       },
       "finish_reason": "stop"
@@ -70,13 +70,13 @@
             "query": "S0004103"
           }
         },
-        "functions_state_id": "01a1cf6f-ec39-7520-a420-b5ccba4be485"
+        "functions_state_id": "01a1cf75-ac16-7b9e-8a19-a30b955c450f"
       },
       "usage": {
-        "prompt_tokens": 3349,
+        "prompt_tokens": 2202,
         "completion_tokens": 31,
-        "total_tokens": 3380,
-        "precached_prompt_tokens": 3
+        "total_tokens": 2233,
+        "precached_prompt_tokens": 1186
       },
       "finish_reason": "function_call"
     },
@@ -102,15 +102,15 @@
     },
     {
       "model": {
-        "content": "Заказ S0004103 отдан Лебедеву, потому что предпочтительный логист по истории поставок Захарова была недоступна (в отпуске). Назначили наименее загруженного доступного сотрудника группы — Лебедева.",
+        "content": "Заказ S0004103 отдан Лебедеву, потому что предпочтительный логист по истории поставок Захарова была недоступна (в отпуске). Назначили наименее загруженного в группе — Лебедева (у него было два заказа \"в работе\").",
         "role": "assistant",
-        "functions_state_id": "01a1cf6f-f1ca-7ac7-9c1b-22b2d423a5d5"
+        "functions_state_id": "01a1cf75-b32c-75cf-99c1-d70eb72e6f9a"
       },
       "usage": {
-        "prompt_tokens": 236,
-        "completion_tokens": 54,
-        "total_tokens": 290,
-        "precached_prompt_tokens": 3381
+        "prompt_tokens": 556,
+        "completion_tokens": 61,
+        "total_tokens": 617,
+        "precached_prompt_tokens": 3097
       },
       "finish_reason": "stop"
     },
@@ -124,13 +124,13 @@
             "query": "S0004105"
           }
         },
-        "functions_state_id": "01a1cf6f-f798-741a-b6b6-b08af74f5f8c"
+        "functions_state_id": "01a1cf75-ba70-7be2-910b-9d99abe19945"
       },
       "usage": {
-        "prompt_tokens": 1452,
+        "prompt_tokens": 3383,
         "completion_tokens": 31,
-        "total_tokens": 1483,
-        "precached_prompt_tokens": 2240
+        "total_tokens": 3414,
+        "precached_prompt_tokens": 352
       },
       "finish_reason": "function_call"
     },
@@ -156,15 +156,15 @@
     },
     {
       "model": {
-        "content": "Заказ S0004105 пока никто не ведёт, потому что в группе \"Мультимодальные перевозки\" нет доступных логистов. Предпочтительный логист Соколов находится в отпуске, Миронова уволилась.",
+        "content": "Заказ S0004105 пока никто не ведёт, потому что в группе \"Мультимодальные перевозки\" нет доступных логистов: Миронова уволена, а Соколов в отпуске.",
         "role": "assistant",
-        "functions_state_id": "01a1cf6f-fe3b-78a9-bb2f-f56a9f158d7d"
+        "functions_state_id": "01a1cf75-c379-7248-971c-5b2e39920adf"
       },
       "usage": {
-        "prompt_tokens": 370,
-        "completion_tokens": 52,
-        "total_tokens": 422,
-        "precached_prompt_tokens": 3599
+        "prompt_tokens": 377,
+        "completion_tokens": 47,
+        "total_tokens": 424,
+        "precached_prompt_tokens": 3635
       },
       "finish_reason": "stop"
     },
@@ -178,13 +178,13 @@
             "query": "УЛ-26-0090"
           }
         },
-        "functions_state_id": "01a1cf70-05bc-763c-9553-d309ed089561"
+        "functions_state_id": "01a1cf75-cd07-7b0f-8b42-73cd834f8faf"
       },
       "usage": {
-        "prompt_tokens": 991,
+        "prompt_tokens": 96,
         "completion_tokens": 33,
-        "total_tokens": 1024,
-        "precached_prompt_tokens": 3061
+        "total_tokens": 129,
+        "precached_prompt_tokens": 3994
       },
       "finish_reason": "function_call"
     },
@@ -210,15 +210,15 @@
     },
     {
       "model": {
-        "content": "По ФУЛ УЛ-26-0090 новая строка в Cloud не создана, потому что дата этого ФУЛ (05.11.2026) раньше даты последней записи в реестре Cloud (06.11.2026). Это считается возможным пропуском.",
+        "content": "По ФУЛ УЛ-26-0090 не создана новая строка в Cloud, потому что дата этого ФУЛ (05.11.2026) раньше даты последней записи в реестре Cloud (06.11.2026). Это считается возможным пропуском.",
         "role": "assistant",
-        "functions_state_id": "01a1cf70-0c95-702b-aee9-058927ccbeb1"
+        "functions_state_id": "01a1cf75-d4c1-7b66-8479-3f48446a7365"
       },
       "usage": {
-        "prompt_tokens": 260,
+        "prompt_tokens": 3195,
         "completion_tokens": 71,
-        "total_tokens": 331,
-        "precached_prompt_tokens": 4083
+        "total_tokens": 3266,
+        "precached_prompt_tokens": 1186
       },
       "finish_reason": "stop"
     }
@@ -226,34 +226,32 @@
   "followups": [
     {
       "question": "Почему заказ S0004103 отдан Лебедеву, а не Захаровой?",
-      "answer": "Заказ S0004103 отдан Лебедеву, потому что предпочтительный логист по истории поставок Захарова была недоступна (в отпуске). Назначили наименее загруженного доступного сотрудника группы — Лебедева.",
+      "answer": "Заказ S0004103 отдан Лебедеву, потому что предпочтительный логист по истории поставок Захарова была недоступна (в отпуске). Назначили наименее загруженного в группе — Лебедева (у него было два заказа \"в работе\").",
       "passed": true,
       "missing": [],
-      "time_s": 2.49
+      "time_s": 2.86
     },
     {
       "question": "Кто будет вести заказ S0004105?",
-      "answer": "Заказ S0004105 пока никто не ведёт, потому что в группе \"Мультимодальные перевозки\" нет доступных логистов. Предпочтительный логист Соколов находится в отпуске, Миронова уволилась.",
-      "passed": false,
-      "missing": [
-        "уволен"
-      ],
-      "time_s": 3.19
+      "answer": "Заказ S0004105 пока никто не ведёт, потому что в группе \"Мультимодальные перевозки\" нет доступных логистов: Миронова уволена, а Соколов в отпуске.",
+      "passed": true,
+      "missing": [],
+      "time_s": 4.14
     },
     {
       "question": "Почему по ФУЛ УЛ-26-0090 не создана новая строка в Cloud?",
-      "answer": "По ФУЛ УЛ-26-0090 новая строка в Cloud не создана, потому что дата этого ФУЛ (05.11.2026) раньше даты последней записи в реестре Cloud (06.11.2026). Это считается возможным пропуском.",
+      "answer": "По ФУЛ УЛ-26-0090 не создана новая строка в Cloud, потому что дата этого ФУЛ (05.11.2026) раньше даты последней записи в реестре Cloud (06.11.2026). Это считается возможным пропуском.",
       "passed": true,
       "missing": [],
-      "time_s": 3.75
+      "time_s": 4.46
     }
   ],
-  "followups_passed": 2,
+  "followups_passed": 3,
   "followups_total": 3,
   "final_answer": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 20 (с логистом — 14, без логиста — 6)\n• Повторных отправок: 5 (заказ уже в Cloud — 4, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 13 (срочных — 7)\n• Черновиков писем логистам: 4\nСрочно:\n  – нет номера заказа — строка не создана: УЛ-26-0108\n  – группа не определена (нет или незнакомый способ доставки / страна): УЛ-26-0111, УЛ-26-0112\n  – в группе нет доступных логистов: УЛ-26-0105, УЛ-26-0118, УЛ-26-0121, УЛ-26-0125\nПодробности — на листах «Требует внимания», «Журнал решений» и «Письма логистам».",
-  "time_total_s": 10.86,
+  "time_total_s": 10.99,
   "time_script_s": 0.2,
-  "time_llm_s": 10.66,
+  "time_llm_s": 10.79,
   "answer_matches_template": true,
   "answer_has_service_markers": false
 }

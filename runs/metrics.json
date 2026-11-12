@@ -78,8 +78,8 @@
     "hashes": [
       "e3b3fa4fa052dba4"
     ],
-    "time_avg_s": 10.37,
-    "time_max_s": 10.86,
+    "time_avg_s": 9.08,
+    "time_max_s": 10.99,
     "answer_ok": [
       true,
       true,
@@ -211,8 +211,8 @@
     "hashes": [
       "a3f4dbf3265c7d8e"
     ],
-    "time_avg_s": 10.17,
-    "time_max_s": 11.8,
+    "time_avg_s": 8.43,
+    "time_max_s": 9.24,
     "answer_ok": [
       true,
       true,
@@ -344,8 +344,8 @@
     "hashes": [
       "91bbcd83e6d5363d"
     ],
-    "time_avg_s": 8.28,
-    "time_max_s": 9.11,
+    "time_avg_s": 7.4,
+    "time_max_s": 8.43,
     "answer_ok": [
       true,
       true,

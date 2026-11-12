@@ -21,13 +21,13 @@
             ]
           }
         },
-        "functions_state_id": "01a1cf71-c94a-7c7e-b335-3369d1047ad4"
+        "functions_state_id": "01a1cf77-73ee-7317-baa4-caaf7d97e8df"
       },
       "usage": {
         "prompt_tokens": 1,
         "completion_tokens": 67,
         "total_tokens": 68,
-        "precached_prompt_tokens": 2362
+        "precached_prompt_tokens": 2398
       },
       "finish_reason": "function_call"
     },
@@ -50,13 +50,13 @@
       "model": {
         "content": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 13 (с логистом — 9, без логиста — 4)\n• Повторных отправок: 1 (заказ уже в Cloud — 0, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 8 (срочных — 5)\n• Черновиков писем логистам: 5\nСрочно:\n  – нет номера заказа — строка не создана: PL-3004\n  – группа не определена (нет или незнакомый способ доставки / страна): PL-3006, PL-3012\n  – в группе нет доступных логистов: PL-3007, PL-3016\nПодробности — на листах «Требует внимания», «Журнал решений» и «Письма логистам».",
         "role": "assistant",
-        "functions_state_id": "01a1cf71-e198-7bd8-b5cd-5850014748dd"
+        "functions_state_id": "01a1cf77-892f-734f-aa7b-2dad31cb4346"
       },
       "usage": {
         "prompt_tokens": 284,
         "completion_tokens": 199,
         "total_tokens": 483,
-        "precached_prompt_tokens": 2695
+        "precached_prompt_tokens": 2731
       },
       "finish_reason": "stop"
     },
@@ -70,13 +70,13 @@
             "query": "S0005003"
           }
         },
-        "functions_state_id": "01a1cf71-e5b3-7030-8bc8-685bb4ca716e"
+        "functions_state_id": "01a1cf77-8f11-761d-bed1-aa2a5553cc54"
       },
       "usage": {
         "prompt_tokens": 506,
         "completion_tokens": 31,
         "total_tokens": 537,
-        "precached_prompt_tokens": 2695
+        "precached_prompt_tokens": 2731
       },
       "finish_reason": "function_call"
     },
@@ -102,15 +102,15 @@
     },
     {
       "model": {
-        "content": "Заказ S0005003 назначен Смирнову О., потому что он ранее вел два из трех заказов этого поставщика (\"Ningbo Basic Tee\") в реестре Cloud. Он доступен и имеет наименьшую текущую нагрузку среди сотрудников группы \"ВЭД\".",
+        "content": "Заказ S0005003 назначен Смирнову О., потому что он ранее вел два из трех заказов этого поставщика (\"Ningbo Basic Tee\") в реестре Cloud. У Смирнова наименьший опыт среди коллег по данному поставщику, но он доступен и имеет приемлемую текущую нагрузку (три заказа \"в работе\").",
         "role": "assistant",
-        "functions_state_id": "01a1cf71-f31a-717b-91bd-2840d0ac3170"
+        "functions_state_id": "01a1cf77-9638-7c55-ad97-67eb63983991"
       },
       "usage": {
-        "prompt_tokens": 759,
-        "completion_tokens": 59,
-        "total_tokens": 818,
-        "precached_prompt_tokens": 2695
+        "prompt_tokens": 224,
+        "completion_tokens": 72,
+        "total_tokens": 296,
+        "precached_prompt_tokens": 3266
       },
       "finish_reason": "stop"
     },
@@ -124,13 +124,13 @@
             "query": "PL-3004"
           }
         },
-        "functions_state_id": "01a1cf71-f6d9-73e1-8f11-c1842c333145"
+        "functions_state_id": "01a1cf77-9a27-7b28-b75d-cb673630ec57"
       },
       "usage": {
-        "prompt_tokens": 309,
+        "prompt_tokens": 1245,
         "completion_tokens": 29,
-        "total_tokens": 338,
-        "precached_prompt_tokens": 3230
+        "total_tokens": 1274,
+        "precached_prompt_tokens": 2343
       },
       "finish_reason": "function_call"
     },
@@ -156,15 +156,15 @@
     },
     {
       "model": {
-        "content": "По ФУЛ PL-3004 не создана строка в Cloud, потому что в комментарии указаны разные номера заказа (S0005004, S0005005), а однозначного номера заказа нет.",
+        "content": "По ФУЛ PL-3004 не создана строка в Cloud, поскольку отсутствует однозначный номер заказа. В комментарии указаны разные номера (S0005004, S0005005), что делает невозможным создание корректной строки.",
         "role": "assistant",
-        "functions_state_id": "01a1cf71-fc92-717c-9537-9d092049ea5b"
+        "functions_state_id": "01a1cf77-9ffa-712a-8642-066c4d767c78"
       },
       "usage": {
-        "prompt_tokens": 1406,
-        "completion_tokens": 56,
-        "total_tokens": 1462,
-        "precached_prompt_tokens": 2307
+        "prompt_tokens": 765,
+        "completion_tokens": 62,
+        "total_tokens": 827,
+        "precached_prompt_tokens": 2997
       },
       "finish_reason": "stop"
     },
@@ -178,13 +178,13 @@
             "query": "S0005008"
           }
         },
-        "functions_state_id": "01a1cf72-033b-729d-99aa-0551925ad3ce"
+        "functions_state_id": "01a1cf77-a4e4-7827-a1ea-fb56bb97e7e9"
       },
       "usage": {
-        "prompt_tokens": 228,
+        "prompt_tokens": 377,
         "completion_tokens": 31,
-        "total_tokens": 259,
-        "precached_prompt_tokens": 3566
+        "total_tokens": 408,
+        "precached_prompt_tokens": 3472
       },
       "finish_reason": "function_call"
     },
@@ -210,15 +210,15 @@
     },
     {
       "model": {
-        "content": "Заказ S0005008 ведет Ахмедов Р., потому что предпочитаемый логист по истории заказов, Кузнецова Д., сейчас находится в состоянии \"Больничный\". Среди доступных сотрудников группы \"Мультимодальные перевозки\" Ахмедов Р. оказался наименее загруженным.",
+        "content": "Заказ S0005008 ведет Ахмедов Р., так как предпочтительный логист по истории работы с данным поставщиком, Кузнецова Д., находится в состоянии \"Больничный\". Среди доступных логистов данной группы Ахмедов Р. оказался наименее загруженным (два заказа \"в работе\"), поэтому был назначен он.",
         "role": "assistant",
-        "functions_state_id": "01a1cf72-0b81-7359-8bf9-05b918f2983f"
+        "functions_state_id": "01a1cf77-ab74-7e1d-98d5-3a88a32ffcbc"
       },
       "usage": {
-        "prompt_tokens": 225,
-        "completion_tokens": 64,
-        "total_tokens": 289,
-        "precached_prompt_tokens": 3823
+        "prompt_tokens": 551,
+        "completion_tokens": 71,
+        "total_tokens": 622,
+        "precached_prompt_tokens": 3552
       },
       "finish_reason": "stop"
     }
@@ -226,36 +226,34 @@
   "followups": [
     {
       "question": "Почему заказ S0005003 назначен Смирнову?",
-      "answer": "Заказ S0005003 назначен Смирнову О., потому что он ранее вел два из трех заказов этого поставщика (\"Ningbo Basic Tee\") в реестре Cloud. Он доступен и имеет наименьшую текущую нагрузку среди сотрудников группы \"ВЭД\".",
+      "answer": "Заказ S0005003 назначен Смирнову О., потому что он ранее вел два из трех заказов этого поставщика (\"Ningbo Basic Tee\") в реестре Cloud. У Смирнова наименьший опыт среди коллег по данному поставщику, но он доступен и имеет приемлемую текущую нагрузку (три заказа \"в работе\").",
       "passed": false,
       "missing": [
-        "истори | чаще | 2 из 3"
+        "неверное утверждение: «наименьш»"
       ],
-      "time_s": 4.4
+      "time_s": 3.38
     },
     {
       "question": "Почему по ФУЛ PL-3004 не создана строка в Cloud?",
-      "answer": "По ФУЛ PL-3004 не создана строка в Cloud, потому что в комментарии указаны разные номера заказа (S0005004, S0005005), а однозначного номера заказа нет.",
-      "passed": false,
-      "missing": [
-        "несколько | два  | двух | 2 номера | оба номера"
-      ],
+      "answer": "По ФУЛ PL-3004 не создана строка в Cloud, поскольку отсутствует однозначный номер заказа. В комментарии указаны разные номера (S0005004, S0005005), что делает невозможным создание корректной строки.",
+      "passed": true,
+      "missing": [],
       "time_s": 2.46
     },
     {
       "question": "Кто ведёт заказ S0005008 и почему не Кузнецова?",
-      "answer": "Заказ S0005008 ведет Ахмедов Р., потому что предпочитаемый логист по истории заказов, Кузнецова Д., сейчас находится в состоянии \"Больничный\". Среди доступных сотрудников группы \"Мультимодальные перевозки\" Ахмедов Р. оказался наименее загруженным.",
+      "answer": "Заказ S0005008 ведет Ахмедов Р., так как предпочтительный логист по истории работы с данным поставщиком, Кузнецова Д., находится в состоянии \"Больничный\". Среди доступных логистов данной группы Ахмедов Р. оказался наименее загруженным (два заказа \"в работе\"), поэтому был назначен он.",
       "passed": true,
       "missing": [],
-      "time_s": 3.75
+      "time_s": 2.97
     }
   ],
-  "followups_passed": 1,
+  "followups_passed": 2,
   "followups_total": 3,
   "final_answer": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 13 (с логистом — 9, без логиста — 4)\n• Повторных отправок: 1 (заказ уже в Cloud — 0, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 8 (срочных — 5)\n• Черновиков писем логистам: 5\nСрочно:\n  – нет номера заказа — строка не создана: PL-3004\n  – группа не определена (нет или незнакомый способ доставки / страна): PL-3006, PL-3012\n  – в группе нет доступных логистов: PL-3007, PL-3016\nПодробности — на листах «Требует внимания», «Журнал решений» и «Письма логистам».",
-  "time_total_s": 8.42,
-  "time_script_s": 0.16,
-  "time_llm_s": 8.27,
+  "time_total_s": 7.13,
+  "time_script_s": 0.15,
+  "time_llm_s": 6.98,
   "answer_matches_template": true,
   "answer_has_service_markers": false
 }
