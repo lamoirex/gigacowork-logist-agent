@@ -1,0 +1,263 @@
+{
+  "ds1_base/claude": {
+    "dataset": "ds1_base",
+    "runner": "claude",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "af6ee1107dc81517"
+    ],
+    "time_avg_s": 7.15,
+    "time_max_s": 7.73,
+    "answer_ok": [
+      true,
+      true,
+      true
+    ],
+    "mismatches": [],
+    "passed": true
+  },
+  "ds1_base/claude-v1": {
+    "dataset": "ds1_base",
+    "runner": "claude-v1",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "bff2a86145be91f4"
+    ],
+    "time_avg_s": 7.94,
+    "time_max_s": 8.29,
+    "answer_ok": [
+      true,
+      true,
+      true
+    ],
+    "mismatches": [],
+    "passed": true
+  },
+  "ds1_base/script": {
+    "dataset": "ds1_base",
+    "runner": "script",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "af6ee1107dc81517"
+    ],
+    "time_avg_s": 0.23,
+    "time_max_s": 0.25,
+    "answer_ok": [
+      null,
+      null,
+      null
+    ],
+    "mismatches": [],
+    "passed": true
+  },
+  "ds2_format/claude": {
+    "dataset": "ds2_format",
+    "runner": "claude",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "42c6a3fc15ca2ab6"
+    ],
+    "time_avg_s": 6.43,
+    "time_max_s": 6.53,
+    "answer_ok": [
+      true,
+      true,
+      true
+    ],
+    "mismatches": [],
+    "passed": true
+  },
+  "ds2_format/claude-v1": {
+    "dataset": "ds2_format",
+    "runner": "claude-v1",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "67a8a8b6cbaa08e9"
+    ],
+    "time_avg_s": 7.99,
+    "time_max_s": 8.4,
+    "answer_ok": [
+      false,
+      true,
+      false
+    ],
+    "mismatches": [],
+    "passed": false
+  },
+  "ds2_format/script": {
+    "dataset": "ds2_format",
+    "runner": "script",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "42c6a3fc15ca2ab6"
+    ],
+    "time_avg_s": 0.23,
+    "time_max_s": 0.25,
+    "answer_ok": [
+      null,
+      null,
+      null
+    ],
+    "mismatches": [],
+    "passed": true
+  },
+  "ds3_edge/claude": {
+    "dataset": "ds3_edge",
+    "runner": "claude",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "f3ed0f7ff6b4db86"
+    ],
+    "time_avg_s": 6.52,
+    "time_max_s": 7.08,
+    "answer_ok": [
+      true,
+      true,
+      true
+    ],
+    "mismatches": [],
+    "passed": true
+  },
+  "ds3_edge/claude-v1": {
+    "dataset": "ds3_edge",
+    "runner": "claude-v1",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "41f3ba6fe379f07f"
+    ],
+    "time_avg_s": 9.68,
+    "time_max_s": 10.94,
+    "answer_ok": [
+      true,
+      true,
+      true
+    ],
+    "mismatches": [],
+    "passed": true
+  },
+  "ds3_edge/script": {
+    "dataset": "ds3_edge",
+    "runner": "script",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "f3ed0f7ff6b4db86"
+    ],
+    "time_avg_s": 0.2,
+    "time_max_s": 0.2,
+    "answer_ok": [
+      null,
+      null,
+      null
+    ],
+    "mismatches": [],
+    "passed": true
+  }
+}
