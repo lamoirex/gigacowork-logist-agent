@@ -2,35 +2,128 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
+  lint:
+    name: Ruff (lint + format)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install "$(grep -E '^ruff==' requirements-dev.txt | cut -d' ' -f1)"
+      - run: ruff check --output-format=github .
+      - run: ruff format --check .
+
   test:
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.12"]
+        python-version: ["3.9", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Установить зависимости
-        run: pip install -r requirements-dev.txt
-      - name: Ruff (линтер и форматирование)
-        run: |
-          ruff check --output-format=github .
-          ruff format --check .
-      - name: Тесты
-        run: python -m unittest discover -s tests -v
-      - name: Контрольные прогоны скрипта (3 × каждый набор) и метрики
-        run: |
-          if [ -f tools/run_control.py ]; then python tools/run_control.py script --runs 3; fi
-      - name: Сборка архивов
-        run: |
-          if [ -f tools/build.py ]; then python tools/build.py; fi
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: pytest + покрытие
+        run: >
+          python -m pytest
+          --cov --cov-report=term --cov-report=xml --cov-fail-under=85
+          --junitxml=pytest-report.xml
+      - name: Совместимость с unittest (запуск без pytest)
+        run: python -m unittest discover -s tests
       - uses: actions/upload-artifact@v4
-        if: matrix.python-version == '3.12' && hashFiles('dist/agent.zip') != ''
+        if: matrix.python-version == '3.12'
+        with:
+          name: test-reports
+          path: |
+            coverage.xml
+            pytest-report.xml
+
+  quality:
+    name: Контрольные прогоны и метрики приёмки
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - name: 3 прогона скрипта на каждом наборе данных, пороги из БТ
+        run: python tools/run_control.py --strict script --runs 3
+      - name: Метрики в сводку CI
+        if: always()
+        run: cat runs/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: control-runs
+          path: |
+            runs/REPORT.md
+            runs/metrics.json
+
+  docker:
+    name: Docker (сборка и запуск)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Образ runtime
+        run: docker build --target runtime -t logist-agent:ci .
+      - name: Запуск на наборе «чужой формат» и сверка с эталоном
+        run: |
+          mkdir -p out && chmod 777 out
+          docker run --rm -v "$PWD/testdata/datasets/ds2_format/input:/data/in:ro" -v "$PWD/out:/data/out" logist-agent:ci
+          pip install -r requirements.txt
+          python tools/evaluate.py --expected testdata/datasets/ds2_format/expected.json --result out/distribution_result.xlsx
+      - name: Пустая папка входа → понятная ошибка, код 2
+        run: |
+          mkdir -p empty
+          set +e
+          docker run --rm -v "$PWD/empty:/data/in:ro" logist-agent:ci; code=$?
+          test "$code" -eq 2
+      - name: Образ test (ruff + pytest внутри контейнера)
+        run: |
+          docker build --target test -t logist-agent:ci-test .
+          docker run --rm logist-agent:ci-test
+
+  package:
+    name: Архивы для сдачи
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/build.py
+      - name: Навык распаковывается и запускается из архива
+        run: |
+          pip install -r requirements.txt
+          mkdir -p /tmp/skill && cd /tmp/skill && unzip -q "$GITHUB_WORKSPACE/dist/agent.zip" && unzip -q logist-distribution.zip
+          python logist-distribution/scripts/distribute.py "$GITHUB_WORKSPACE/testdata/datasets/ds1_base/input" --out /tmp/skill/out
+      - uses: actions/upload-artifact@v4
         with:
           name: deliverables
           path: |

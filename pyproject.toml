@@ -67,8 +67,16 @@ markers = [
 ]
 
 [tool.coverage.run]
+# покрытие считаем по ядру: скрипты навыка и метрики приёмки;
+# служебные tools/* проверяются в CI запуском (контрольные прогоны, сборка архивов)
 source = ["agent/skill/logist-distribution/scripts", "tools"]
-omit = ["tools/gigachat_agent.py", "tools/build_report.py", "tools/import_harness_runs.py"]
+omit = [
+    "tools/build.py",
+    "tools/build_report.py",
+    "tools/gigachat_agent.py",
+    "tools/import_harness_runs.py",
+    "tools/run_control.py",
+]
 
 [tool.coverage.report]
 show_missing = true
