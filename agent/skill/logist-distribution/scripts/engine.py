@@ -6,7 +6,8 @@
 
 from __future__ import annotations
 
-from collections import Counter
+import difflib
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
 import normalize as N
@@ -411,3 +412,321 @@ class Engine:
 
     def short(self, e):
         return getattr(e, "short_name", None) or e.fio
+
+    # ---------- основной проход
+    def run(self, tables) -> Result:
+        emps = self.load_staff(tables["staff"])
+        cloud = self.load_cloud(tables["cloud"], emps)
+        fuls = self.load_ful(tables["ful"])
+        self.prepare_short_names(emps, cloud)
+
+        cloud_by_order = {}
+        for cr in cloud:
+            if cr.order and cr.order not in cloud_by_order:
+                cloud_by_order[cr.order] = cr
+        cloud_dates = [cr.ul_date for cr in cloud if cr.ul_date]
+        last_cloud = max(cloud_dates) if cloud_dates else None
+        cloud_supplier_names = {}
+        for cr in cloud:
+            if cr.supplier_key and cr.supplier_key not in cloud_supplier_names:
+                cloud_supplier_names[cr.supplier_key] = cr.supplier
+        self.cloud_supplier_names = cloud_supplier_names
+
+        far = N.parse_datetime("31.12.2999")
+        order_idx = sorted(
+            range(len(fuls)), key=lambda i: (fuls[i].date or far, N.norm_text(fuls[i].number), fuls[i].row)
+        )
+        decisions = {}
+        first_by_order = {}
+        seen_lines = set()
+
+        # Проход 1: статус каждого ФУЛ
+        for i in order_idx:
+            f = fuls[i]
+            d = Decision(ful=f)
+            decisions[i] = d
+            if not f.order:
+                d.outcome = NO_ORDER
+                if f.orders_found:
+                    d.reason = f"в комментарии несколько разных номеров заказа: {', '.join(f.orders_found)}"
+                else:
+                    d.reason = f"в комментарии нет номера заказа (комментарий: «{f.comment or 'пусто'}»)"
+                self._attn(
+                    BLOCK,
+                    f.number,
+                    "",
+                    f.supplier,
+                    f"ФУЛ без однозначного номера заказа: {d.reason}. Строка Cloud не создана.",
+                    "Уточнить номер заказа в 1С и внести вручную.",
+                )
+                continue
+            line_key = (N.norm_text(f.number), f.order)
+            if f.number and line_key in seen_lines:
+                d.outcome = TECH_DUP
+                d.first = first_by_order.get(f.order)
+                d.reason = f"строка ФУЛ {f.number} по заказу {f.order} повторяется в выгрузке — учтена один раз"
+                self._attn(
+                    CHECK,
+                    f.number,
+                    f.order,
+                    f.supplier,
+                    "Одна и та же строка ФУЛ дважды в выгрузке 1С.",
+                    "Проверить выгрузку; агент учёл её один раз.",
+                )
+                continue
+            seen_lines.add(line_key)
+            date_txt = f.date.strftime(self.r["date_format"]) if f.date else self.U
+            if f.order in cloud_by_order:
+                cr = cloud_by_order[f.order]
+                d.outcome = REPEAT_CLOUD
+                d.cloud_row = cr
+                d.reason = f"заказ {f.order} уже есть в Cloud (строка {cr.row}, логист {cr.logist_raw or self.U}, статус {cr.status or self.U})"
+                if N.norm_text(cr.status) not in {N.norm_text(s) for s in self.r["load_status_values"]}:
+                    self._attn(
+                        CHECK,
+                        f.number,
+                        f.order,
+                        f.supplier,
+                        f"Повторная отправка ФУЛа по заказу со статусом «{cr.status or 'пусто'}» в Cloud.",
+                        "Проверить, не нужно ли вернуть заказ в работу логисту.",
+                    )
+                continue
+            if f.order in first_by_order:
+                d.outcome = REPEAT_BATCH
+                d.first = first_by_order[f.order]
+                d.first.repeats.append(d)
+                d.reason = f"заказ {f.order} уже встречался в этой пачке (ФУЛ {d.first.ful.number or self.U})"
+                continue
+            first_by_order[f.order] = d
+            if f.date is None:
+                d.outcome = NEW
+                self._attn(
+                    CHECK,
+                    f.number,
+                    f.order,
+                    f.supplier,
+                    f"Не распознана дата ФУЛ («{f.date_raw or 'пусто'}»).",
+                    "Проверить дату в 1С; «Дата получения УЛ» оставлена «не определено».",
+                )
+            elif last_cloud and (
+                f.date.date() < last_cloud.date() if self.r["possible_miss_compare_by_day"] else f.date < last_cloud
+            ):
+                d.outcome = POSSIBLE_MISS
+                d.reason = (
+                    f"заказа нет в Cloud, но ФУЛ от {date_txt} раньше последней записи Cloud "
+                    f"({last_cloud.strftime(self.r['date_format'])})"
+                )
+            else:
+                d.outcome = NEW
+
+        # Проход 2: группа и логист для новых, затем предложения для пропусков
+        pins = {}
+        supplier_groups = defaultdict(set)
+        for phase in (NEW, POSSIBLE_MISS):
+            for i in order_idx:
+                d = decisions[i]
+                if d.outcome != phase:
+                    continue
+                f = d.ful
+                d.group, d.group_reason = self.determine_group(f)
+                if d.group is None:
+                    d.rule = "Группа не определена"
+                    d.reason = (
+                        d.reason + "; " if d.reason else ""
+                    ) + f"группа не определена: {d.group_reason}; логист не назначается"
+                    if phase == NEW:
+                        self._attn(
+                            BLOCK,
+                            f.number,
+                            f.order,
+                            f.supplier,
+                            f"Группа не определена: {d.group_reason}. Логист не назначен.",
+                            "Уточнить способ доставки / страну в 1С и назначить логиста вручную.",
+                        )
+                    continue
+                if phase == NEW:
+                    supplier_groups[f.supplier_key].add(d.group)
+                e, rule, reason = self.choose_logist(f, d.group, emps, cloud, pins, commit=(phase == NEW))
+                d.logist, d.rule = e, rule
+                d.reason = (d.reason + "; " if d.reason else "") + reason
+                d.candidates = self._candidates_text(d.group, emps)
+                if phase == NEW and e is not None:
+                    e.load_batch += 1 if self.r["count_batch_assignments_in_load"] else 0
+                if phase == NEW and e is None:
+                    self._attn(
+                        BLOCK,
+                        f.number,
+                        f.order,
+                        f.supplier,
+                        f"В группе «{self.group_title(d.group)}» нет доступных логистов ({d.candidates or 'нет сотрудников'}).",
+                        "Назначить логиста вручную; в другую группу агент заказ не передаёт.",
+                    )
+                if phase == NEW and f.method == self.r["air_method"] and f.is_china is None:
+                    self._attn(
+                        CHECK,
+                        f.number,
+                        f.order,
+                        f.supplier,
+                        "Не указана страна отправления (для air на группу не влияет).",
+                        "Дополнить страну в Cloud.",
+                    )
+
+        for key, groups in sorted(supplier_groups.items()):
+            if key and len(groups) > 1:
+                name = next(
+                    (self.sup_name(decisions[i].ful) for i in order_idx if decisions[i].ful.supplier_key == key), key
+                )
+                titles = ", ".join(sorted(self.group_title(g) for g in groups))
+                self._attn(
+                    CHECK,
+                    "",
+                    "",
+                    name,
+                    f"У поставщика в пачке заказы разных групп ({titles}). Правило «один поставщик — один логист» применено внутри каждой группы.",
+                    "Решить, нужен ли один логист на поставщика во всех группах.",
+                )
+
+        # Похожие, но не совпавшие названия поставщиков
+        known = sorted(cloud_supplier_names)
+        flagged = set()
+        for i in order_idx:
+            f = decisions[i].ful
+            if not f.supplier_key or f.supplier_key in cloud_supplier_names or f.supplier_key in flagged:
+                continue
+            for k in known:
+                if difflib.SequenceMatcher(None, f.supplier_key, k).ratio() >= self.r["supplier_similarity_threshold"]:
+                    flagged.add(f.supplier_key)
+                    self._attn(
+                        CHECK,
+                        f.number,
+                        f.order,
+                        f.supplier,
+                        f"Поставщик «{f.supplier}» не найден в Cloud, но похож на «{cloud_supplier_names[k]}». Обработан как новый.",
+                        "Проверить, один ли это поставщик; если да — переназначить логиста по истории.",
+                    )
+                    break
+
+        # Пустые поля новой строки
+        for i in order_idx:
+            d = decisions[i]
+            if d.outcome != NEW:
+                continue
+            f = d.ful
+            gaps = [
+                n
+                for n, v in (
+                    ("поставщик", f.supplier),
+                    ("бренд", f.brand),
+                    ("cut-off", N.to_str(f.cutoff_raw) if not N.is_empty(f.cutoff_raw, self.markers) else ""),
+                )
+                if not v
+            ]
+            if gaps:
+                self._attn(
+                    CHECK,
+                    f.number,
+                    f.order,
+                    f.supplier,
+                    f"В 1С не заполнено: {', '.join(gaps)}. В строке Cloud — «не определено».",
+                    "Дополнить данные в Cloud вручную.",
+                )
+
+        return self._build_result(fuls, order_idx, decisions, emps, cloud, cloud_supplier_names, last_cloud, tables)
+
+    # ---------- результат
+    def _comment_for_repeats(self, reps):
+        dates = []
+        for r in reps:
+            dtxt = r.ful.date.strftime(self.r["date_format"]) if r.ful.date else self.U
+            dates.append(self.r["repeat_comment_template"].format(date=dtxt))
+        return self.r["comment_separator"].join(dates)
+
+    def _cell(self, v):
+        return v if v not in (None, "") else self.U
+
+    def _build_result(self, fuls, order_idx, decisions, emps, cloud, cloud_supplier_names, last_cloud, tables):
+        cloud_tbl = tables["cloud"]
+        order = list(self.r["cloud_columns_order"])
+        # порядок колонок как в реестре заказчика
+        present = [f for f in cloud_tbl.header_order if f in order]
+        cloud_order = present + [f for f in order if f not in present]
+        titles = {f: cloud_tbl.titles.get(f) or self.r["cloud_default_titles"][f] for f in order}
+
+        def make_row(d):
+            f = d.ful
+            cut = f.cutoff_raw
+            cut_v = None if N.is_empty(cut, self.markers) else (N.parse_datetime(cut) or N.to_str(cut))
+            return {
+                "order": f.order,
+                "supplier": cloud_supplier_names.get(f.supplier_key) or f.supplier or self.U,
+                "brand": self._cell(f.brand),
+                "logist": self.short(d.logist) if d.logist else self.U,
+                "status": self.r["new_row_status"],
+                "confirm_date": None,
+                "cutoff": cut_v if cut_v not in (None, "") else self.U,
+                "ul_date": f.date if f.date else self.U,
+                "country": self._cell(f.country),
+                "method": self._cell(f.method_raw if f.method_state != "empty" else ""),
+                "docs_date": None,
+                "comment": self._comment_for_repeats(d.repeats) if d.repeats else None,
+            }
+
+        new_rows, repeats, misses = [], [], []
+        for i in order_idx:
+            d = decisions[i]
+            f = d.ful
+            if d.outcome == NEW:
+                row = make_row(d)
+                d.new_comment = row["comment"] or ""
+                new_rows.append({"_ful": f.number, **row})
+            elif d.outcome == POSSIBLE_MISS:
+                row = make_row(d)
+                d.new_comment = row["comment"] or ""
+                misses.append({"_d": d, **row})
+            elif d.outcome == REPEAT_CLOUD:
+                cr = d.cloud_row
+                add = self._comment_for_repeats([d])
+                d.new_comment = add
+                repeats.append({"d": d, "cloud_row": cr, "add": add})
+            elif d.outcome in (REPEAT_BATCH,):
+                d.new_comment = self._comment_for_repeats([d])
+
+        # Повторы одного заказа из Cloud — комментарий накапливается
+        by_order = defaultdict(list)
+        for rp in repeats:
+            by_order[rp["cloud_row"].order].append(rp)
+        sep = self.r["comment_separator"]
+        for o, items in by_order.items():
+            cr = items[0]["cloud_row"]
+            acc = cr.comment
+            for rp in items:
+                acc = (acc + sep if acc else "") + rp["add"]
+                rp["full_comment"] = acc
+
+        stats = Counter(decisions[i].outcome for i in order_idx)
+        assigned = sum(1 for r in new_rows if r["logist"] != self.U)
+        blockers = sum(1 for a in self.attention if a.priority == BLOCK)
+        return Result(
+            decisions=[decisions[i] for i in order_idx],
+            new_rows=new_rows,
+            repeats=repeats,
+            misses=misses,
+            attention=sorted(self.attention, key=lambda a: (a.priority != BLOCK,)),
+            employees=emps,
+            cloud_titles=titles,
+            cloud_order=cloud_order,
+            last_cloud_date=last_cloud,
+            stats={
+                "ful_total": len(fuls),
+                "new_rows": len(new_rows),
+                "new_rows_with_logist": assigned,
+                "new_rows_without_logist": len(new_rows) - assigned,
+                "repeats_cloud": stats.get(REPEAT_CLOUD, 0),
+                "repeats_batch": stats.get(REPEAT_BATCH, 0),
+                "tech_duplicates": stats.get(TECH_DUP, 0),
+                "possible_misses": stats.get(POSSIBLE_MISS, 0),
+                "no_order": stats.get(NO_ORDER, 0),
+                "attention_total": len(self.attention),
+                "attention_blocking": blockers,
+            },
+        )
