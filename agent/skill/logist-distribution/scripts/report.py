@@ -363,6 +363,7 @@ def write_summary(res: E.Result, path: str, out_xlsx: str, eng: E.Engine, inputs
                 "logist": eng.short(d.logist) if d.logist else "",
                 "rule": d.rule,
                 "reason": d.reason,
+                "candidates": d.candidates,
             }
             for d in res.decisions
         ],

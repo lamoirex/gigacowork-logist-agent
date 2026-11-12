@@ -99,6 +99,10 @@ DECISION_FUNCTION = {
                         "logist": {"type": "string", "description": "назначенный логист (пусто — не назначен)"},
                         "rule": {"type": "string", "description": "правило распределения"},
                         "reason": {"type": "string", "description": "обоснование решения"},
+                        "candidates": {
+                            "type": "string",
+                            "description": "сотрудники группы: загрузка или причина недоступности",
+                        },
                     },
                 },
             },
