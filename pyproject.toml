@@ -1,5 +1,21 @@
-# Настройки инструментов разработки.
-# Навык агента — набор скриптов (scripts/), не пакет; зависимости — в requirements*.txt.
+[project]
+name = "gigacowork-logist-agent"
+version = "1.1.0"
+description = "Навык GigaCowork: распределение новых ФУЛ между логистами и строки реестра Cloud"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "openpyxl>=3.1",
+    "xlrd>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+    "markdown>=3.5",
+]
 
 # ------------------------------------------------------------------ ruff
 
@@ -35,3 +51,20 @@ section-order = ["future", "standard-library", "third-party", "test-helpers", "f
 
 [tool.ruff.format]
 quote-style = "double"
+
+# ------------------------------------------------------------------ pytest
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "e2e: сквозные проверки с запуском скрипта навыка на наборах данных (медленнее)",
+]
+
+[tool.coverage.run]
+source = ["agent/skill/logist-distribution/scripts", "tools"]
+omit = ["tools/gigachat_agent.py", "tools/build_report.py", "tools/import_harness_runs.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

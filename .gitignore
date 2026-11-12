@@ -5,3 +5,10 @@ dist/
 runs/**/summary.json
 ~$*.xlsx
 .DS_Store
+
+# кэши инструментов разработки
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.ruff_cache/

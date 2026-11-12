@@ -1,3 +1,5 @@
 -r requirements.txt
+pytest>=8          # запуск тестов (тесты совместимы и с unittest)
+pytest-cov>=5      # покрытие в CI
 ruff>=0.6          # линтер и форматтер
 markdown>=3.5      # сборка PDF-отчёта (tools/build_report.py)
