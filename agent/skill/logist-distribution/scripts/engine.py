@@ -139,6 +139,8 @@ class Engine:
         self.U = rules["undefined"]
         self.markers = {N.norm_text(m) for m in rules["empty_markers"]}
         self.attention: list[Attention] = []
+        self._match_cache: dict = {}  # (короткое имя, список сотрудников) → результат сопоставления
+        self.cloud_by_supplier: dict = {}  # ключ поставщика → строки реестра (индекс истории)
 
     # ---------- утилиты
     def _val(self, v) -> str:
@@ -190,6 +192,14 @@ class Engine:
         return emps
 
     def match_employee(self, short, emps):
+        # Различных имён в реестре — десятки, строк — тысячи: сопоставляем каждое имя один раз
+        key = (short, id(emps))
+        if key not in self._match_cache:
+            self._match_cache[key] = self._match_employee(short, emps)
+        return self._match_cache[key]
+
+    @staticmethod
+    def _match_employee(short, emps):
         if not short:
             return None, "empty"
         hits = [e for e in emps if N.name_matches(short, e.fio)]
@@ -363,9 +373,7 @@ class Engine:
         last = {}
         total = unmatched = 0
         if f.supplier_key:
-            for cr in cloud:
-                if cr.supplier_key != f.supplier_key:
-                    continue
+            for cr in self.cloud_by_supplier.get(f.supplier_key, ()):
                 total += 1
                 if cr.match in ("ambiguous", "unknown"):
                     unmatched += 1
@@ -449,6 +457,10 @@ class Engine:
         fuls = self.load_ful(tables["ful"])
         self.prepare_short_names(emps, cloud)
 
+        self.cloud_by_supplier = defaultdict(list)
+        for cr in cloud:
+            if cr.supplier_key:
+                self.cloud_by_supplier[cr.supplier_key].append(cr)
         cloud_by_order = {}
         for cr in cloud:
             if cr.order and cr.order not in cloud_by_order:
