@@ -12,3 +12,7 @@ runs/**/summary.json
 htmlcov/
 .pytest_cache/
 .ruff_cache/
+
+# IDE
+.idea/
+.vscode/
