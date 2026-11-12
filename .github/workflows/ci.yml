@@ -50,7 +50,7 @@ jobs:
           --junitxml=pytest-report.xml
       - name: Совместимость с unittest (запуск без pytest)
         run: python -m unittest discover -s tests
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.python-version == '3.12'
         with:
           name: test-reports
@@ -75,7 +75,7 @@ jobs:
       - name: Метрики в сводку CI
         if: always()
         run: cat runs/REPORT.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: control-runs
@@ -131,7 +131,7 @@ jobs:
           pip install -r requirements.txt
           mkdir -p /tmp/skill && cd /tmp/skill && unzip -q "$GITHUB_WORKSPACE/dist/agent.zip" && unzip -q logist-distribution.zip
           python logist-distribution/scripts/distribute.py "$GITHUB_WORKSPACE/testdata/datasets/ds1_base/input" --out /tmp/skill/out
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: deliverables
           path: |
