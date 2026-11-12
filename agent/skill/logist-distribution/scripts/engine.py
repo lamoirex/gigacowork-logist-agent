@@ -290,7 +290,28 @@ class Engine:
                     cutoff_raw=rec.get("cutoff"),
                 )
             )
+        self._flag_formula_like(fuls)
         return fuls
+
+    def _flag_formula_like(self, fuls):
+        """Значения, похожие на формулу Excel, — на проверку человеку до переноса в Cloud."""
+        fields = (
+            ("поставщик", "supplier"),
+            ("бренд", "brand"),
+            ("страна", "country"),
+            ("способ доставки", "method_raw"),
+        )
+        for f in fuls:
+            bad = [title for title, attr in fields if N.looks_like_formula(getattr(f, attr))]
+            if bad:
+                self._attn(
+                    CHECK,
+                    f.number,
+                    f.order,
+                    f.supplier,
+                    f"Значение похоже на формулу Excel ({', '.join(bad)}). В результате записано как текст.",
+                    "Проверить данные в 1С перед переносом в Cloud: так может выглядеть ошибка ввода или вредоносная ссылка.",
+                )
 
     # ---------- группа
     def determine_group(self, f: Ful):

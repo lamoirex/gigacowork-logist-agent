@@ -21,6 +21,18 @@ DATE_FMT = "DD.MM.YYYY"
 DATETIME_FMT = "DD.MM.YYYY HH:MM"
 
 
+def neutralize_formulas(ws) -> int:
+    """Защита от Excel-инъекций: значения из входных файлов вида «=HYPERLINK(…)» записываются
+    как текст, а не как формула. Само значение не меняется. Возвращает число исправленных ячеек."""
+    fixed = 0
+    for row in ws.iter_rows():
+        for cell in row:
+            if cell.data_type == "f":
+                cell.data_type = "s"
+                fixed += 1
+    return fixed
+
+
 def _style_sheet(ws, widths, undefined):
     from openpyxl.styles import Alignment, Font, PatternFill
     from openpyxl.utils import get_column_letter
@@ -28,6 +40,7 @@ def _style_sheet(ws, widths, undefined):
     hdr_font = Font(bold=True, color="FFFFFF")
     hdr_fill = PatternFill("solid", fgColor=HEADER_FILL)
     undef_fill = PatternFill("solid", fgColor=UNDEF_FILL)
+    neutralize_formulas(ws)
     for cell in ws[1]:
         cell.font = hdr_font
         cell.fill = hdr_fill

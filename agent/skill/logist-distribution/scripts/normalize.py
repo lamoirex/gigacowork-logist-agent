@@ -40,6 +40,17 @@ def norm_header(value) -> str:
     return "".join(ch for ch in s if ch.isalnum() or ch == "№")
 
 
+def looks_like_formula(value) -> bool:
+    """Строка, которую Excel или Google Sheets могут выполнить как формулу (CSV/Excel injection)."""
+    s = to_str(value)
+    if len(s) < 2:
+        return False
+    if s[0] in "=@":
+        return True
+    # «+7 …» и «-5» — числа и телефоны, «+cmd|…» и «-cmd» — уже нет
+    return s[0] in "+-" and not (s[1].isdigit() or s[1] == " ")
+
+
 def is_empty(value, markers) -> bool:
     return norm_text(value) in markers
 
