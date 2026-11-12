@@ -32,6 +32,16 @@ class TestCli(unittest.TestCase):
             self.assertEqual(len(summary["assignments"]), summary["stats"]["ful_total"])
             self.assertIn("=== ОТВЕТ ДЛЯ ЧАТА ===", stdout)
 
+    def test_xls_and_foreign_layout(self):
+        src = os.path.join(DATASETS, "ds2_format", "input")
+        self.assertTrue(any(name.endswith(".xls") for name in os.listdir(src)))
+        with tempfile.TemporaryDirectory() as out:
+            code, stdout = run_main([src, "--out", out])
+            self.assertEqual(code, 0, stdout)
+            summary = json.loads(Path(out, "summary.json").read_text(encoding="utf-8"))
+            self.assertIn(".xls", summary["inputs"]["Сотрудники (1С)"])
+            self.assertEqual(summary["stats"]["new_rows"], 20)
+
     def test_named_flags_and_any_file_order(self):
         src = os.path.join(DATASETS, "ds3_edge", "input")
         with tempfile.TemporaryDirectory() as out:
