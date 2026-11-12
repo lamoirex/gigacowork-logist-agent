@@ -1,0 +1,35 @@
+[
+  {
+    "run": 1,
+    "time_total_s": 11.72,
+    "time_llm_s": 11.52,
+    "called_skill": true,
+    "full_match_rate": 1.0,
+    "cloud_form_ok": true,
+    "invented_values": 0,
+    "content_hash": "42c6a3fc15ca2ab6",
+    "answer_ok": true
+  },
+  {
+    "run": 2,
+    "time_total_s": 12.63,
+    "time_llm_s": 12.44,
+    "called_skill": true,
+    "full_match_rate": 1.0,
+    "cloud_form_ok": true,
+    "invented_values": 0,
+    "content_hash": "42c6a3fc15ca2ab6",
+    "answer_ok": true
+  },
+  {
+    "run": 3,
+    "time_total_s": 14.13,
+    "time_llm_s": 13.97,
+    "called_skill": true,
+    "full_match_rate": 1.0,
+    "cloud_form_ok": true,
+    "invented_values": 0,
+    "content_hash": "42c6a3fc15ca2ab6",
+    "answer_ok": true
+  }
+]

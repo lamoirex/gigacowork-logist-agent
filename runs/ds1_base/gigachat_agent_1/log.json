@@ -1,0 +1,70 @@
+{
+  "mode": "agent",
+  "model": "GigaChat-2-Max",
+  "files": [
+    "testdata/datasets/ds1_base/input/1c_ful.xlsx",
+    "testdata/datasets/ds1_base/input/1c_staff.xlsx",
+    "testdata/datasets/ds1_base/input/cloud_registry.xlsx"
+  ],
+  "steps": [
+    {
+      "model": {
+        "content": "",
+        "role": "assistant",
+        "function_call": {
+          "name": "run_logist_distribution",
+          "arguments": {
+            "files": [
+              "testdata/datasets/ds1_base/input/1c_ful.xlsx",
+              "testdata/datasets/ds1_base/input/1c_staff.xlsx",
+              "testdata/datasets/ds1_base/input/cloud_registry.xlsx"
+            ]
+          }
+        },
+        "functions_state_id": "01a1cf4f-4430-7bf7-b9c0-7462e2593fe8"
+      },
+      "usage": {
+        "prompt_tokens": 1906,
+        "completion_tokens": 73,
+        "total_tokens": 1979,
+        "precached_prompt_tokens": 3
+      },
+      "finish_reason": "function_call"
+    },
+    {
+      "tool": "run_logist_distribution",
+      "args": {
+        "files": [
+          "testdata/datasets/ds1_base/input/1c_ful.xlsx",
+          "testdata/datasets/ds1_base/input/1c_staff.xlsx",
+          "testdata/datasets/ds1_base/input/cloud_registry.xlsx"
+        ]
+      },
+      "result": {
+        "exit_code": 0,
+        "stdout": "=== ОТВЕТ ДЛЯ ЧАТА ===\nГотово: distribution_result.xlsx\n• Новых строк для Cloud: 20 (с логистом — 14, без логиста — 6)\n• Повторных отправок: 5 (заказ уже в Cloud — 4, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 13 (срочных — 7)\nСрочно:\n  – нет номера заказа — строка не создана: УЛ-26-0108\n  – группа не определена (нет или незнакомый способ доставки / страна): УЛ-26-0111, УЛ-26-0112\n  – в группе нет доступных логистов: УЛ-26-0105, УЛ-26-0118, УЛ-26-0121, УЛ-26-0125\nПодробности — на листах «Требует внимания» и «Журнал решений».\n=== КОНЕЦ ОТВЕТА ===\nФайл результата: /Library/PyCharm/gigacowork-logist-agent/runs/ds1_base/gigachat_agent_1/distribution_result.xlsx\nСводка JSON: /Library/PyCharm/gigacowork-logist-agent/runs/ds1_base/gigachat_agent_1/summary.json\nВремя работы скрипта: 0.13 с\n",
+        "chat_message": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 20 (с логистом — 14, без логиста — 6)\n• Повторных отправок: 5 (заказ уже в Cloud — 4, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 13 (срочных — 7)\nСрочно:\n  – нет номера заказа — строка не создана: УЛ-26-0108\n  – группа не определена (нет или незнакомый способ доставки / страна): УЛ-26-0111, УЛ-26-0112\n  – в группе нет доступных логистов: УЛ-26-0105, УЛ-26-0118, УЛ-26-0121, УЛ-26-0125\nПодробности — на листах «Требует внимания» и «Журнал решений».\n"
+      }
+    },
+    {
+      "model": {
+        "content": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 20 (с логистом — 14, без логиста — 6)\n• Повторных отправок: 5 (заказ уже в Cloud — 4, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 13 (срочных — 7)\nСрочно:\n  – нет номера заказа — строка не создана: УЛ-26-0108\n  – группа не определена (нет или незнакомый способ доставки / страна): УЛ-26-0111, УЛ-26-0112\n  – в группе нет доступных логистов: УЛ-26-0105, УЛ-26-0118, УЛ-26-0121, УЛ-26-0125\nПодробности — на листах «Требует внимания» и «Журнал решений».",
+        "role": "assistant",
+        "functions_state_id": "01a1cf4f-665e-7c50-8476-059e7bf935fb"
+      },
+      "usage": {
+        "prompt_tokens": 2575,
+        "completion_tokens": 226,
+        "total_tokens": 2801,
+        "precached_prompt_tokens": 3
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "final_answer": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 20 (с логистом — 14, без логиста — 6)\n• Повторных отправок: 5 (заказ уже в Cloud — 4, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 13 (срочных — 7)\nСрочно:\n  – нет номера заказа — строка не создана: УЛ-26-0108\n  – группа не определена (нет или незнакомый способ доставки / страна): УЛ-26-0111, УЛ-26-0112\n  – в группе нет доступных логистов: УЛ-26-0105, УЛ-26-0118, УЛ-26-0121, УЛ-26-0125\nПодробности — на листах «Требует внимания» и «Журнал решений».",
+  "time_total_s": 10.84,
+  "time_script_s": 0.21,
+  "time_llm_s": 10.64,
+  "answer_matches_template": true,
+  "answer_has_service_markers": false
+}

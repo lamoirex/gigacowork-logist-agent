@@ -1,0 +1,70 @@
+{
+  "mode": "agent",
+  "model": "GigaChat-2-Max",
+  "files": [
+    "testdata/datasets/ds3_edge/input/cloud.xlsx",
+    "testdata/datasets/ds3_edge/input/ful.xlsx",
+    "testdata/datasets/ds3_edge/input/staff.xlsx"
+  ],
+  "steps": [
+    {
+      "model": {
+        "content": "",
+        "role": "assistant",
+        "function_call": {
+          "name": "run_logist_distribution",
+          "arguments": {
+            "files": [
+              "testdata/datasets/ds3_edge/input/cloud.xlsx",
+              "testdata/datasets/ds3_edge/input/ful.xlsx",
+              "testdata/datasets/ds3_edge/input/staff.xlsx"
+            ]
+          }
+        },
+        "functions_state_id": "01a1cf51-61f2-7304-9061-2facac9b008b"
+      },
+      "usage": {
+        "prompt_tokens": 1231,
+        "completion_tokens": 67,
+        "total_tokens": 1298,
+        "precached_prompt_tokens": 672
+      },
+      "finish_reason": "function_call"
+    },
+    {
+      "tool": "run_logist_distribution",
+      "args": {
+        "files": [
+          "testdata/datasets/ds3_edge/input/cloud.xlsx",
+          "testdata/datasets/ds3_edge/input/ful.xlsx",
+          "testdata/datasets/ds3_edge/input/staff.xlsx"
+        ]
+      },
+      "result": {
+        "exit_code": 0,
+        "stdout": "=== ОТВЕТ ДЛЯ ЧАТА ===\nГотово: distribution_result.xlsx\n• Новых строк для Cloud: 13 (с логистом — 9, без логиста — 4)\n• Повторных отправок: 1 (заказ уже в Cloud — 0, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 8 (срочных — 5)\nСрочно:\n  – нет номера заказа — строка не создана: PL-3004\n  – группа не определена (нет или незнакомый способ доставки / страна): PL-3006, PL-3012\n  – в группе нет доступных логистов: PL-3007, PL-3016\nПодробности — на листах «Требует внимания» и «Журнал решений».\n=== КОНЕЦ ОТВЕТА ===\nФайл результата: /Library/PyCharm/gigacowork-logist-agent/runs/ds3_edge/gigachat_agent_1/distribution_result.xlsx\nСводка JSON: /Library/PyCharm/gigacowork-logist-agent/runs/ds3_edge/gigachat_agent_1/summary.json\nВремя работы скрипта: 0.09 с\n",
+        "chat_message": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 13 (с логистом — 9, без логиста — 4)\n• Повторных отправок: 1 (заказ уже в Cloud — 0, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 8 (срочных — 5)\nСрочно:\n  – нет номера заказа — строка не создана: PL-3004\n  – группа не определена (нет или незнакомый способ доставки / страна): PL-3006, PL-3012\n  – в группе нет доступных логистов: PL-3007, PL-3016\nПодробности — на листах «Требует внимания» и «Журнал решений».\n"
+      }
+    },
+    {
+      "model": {
+        "content": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 13 (с логистом — 9, без логиста — 4)\n• Повторных отправок: 1 (заказ уже в Cloud — 0, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 8 (срочных — 5)\nСрочно:\n  – нет номера заказа — строка не создана: PL-3004\n  – группа не определена (нет или незнакомый способ доставки / страна): PL-3006, PL-3012\n  – в группе нет доступных логистов: PL-3007, PL-3016\nПодробности — на листах «Требует внимания» и «Журнал решений».",
+        "role": "assistant",
+        "functions_state_id": "01a1cf51-7db8-771f-8373-89f4fda9d615"
+      },
+      "usage": {
+        "prompt_tokens": 2475,
+        "completion_tokens": 182,
+        "total_tokens": 2657,
+        "precached_prompt_tokens": 3
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "final_answer": "Готово: distribution_result.xlsx\n• Новых строк для Cloud: 13 (с логистом — 9, без логиста — 4)\n• Повторных отправок: 1 (заказ уже в Cloud — 0, дубль в пачке — 1)\n• Возможных пропусков: 1\n• Вопросов, требующих решения: 8 (срочных — 5)\nСрочно:\n  – нет номера заказа — строка не создана: PL-3004\n  – группа не определена (нет или незнакомый способ доставки / страна): PL-3006, PL-3012\n  – в группе нет доступных логистов: PL-3007, PL-3016\nПодробности — на листах «Требует внимания» и «Журнал решений».",
+  "time_total_s": 9.45,
+  "time_script_s": 0.16,
+  "time_llm_s": 9.29,
+  "answer_matches_template": true,
+  "answer_has_service_markers": false
+}

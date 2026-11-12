@@ -57,6 +57,35 @@
     "mismatches": [],
     "passed": true
   },
+  "ds1_base/gigachat_agent": {
+    "dataset": "ds1_base",
+    "runner": "gigachat_agent",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "af6ee1107dc81517"
+    ],
+    "time_avg_s": 10.6,
+    "time_max_s": 10.84,
+    "answer_ok": [
+      true,
+      true,
+      true
+    ],
+    "mismatches": [],
+    "passed": true
+  },
   "ds1_base/script": {
     "dataset": "ds1_base",
     "runner": "script",
@@ -144,6 +173,35 @@
     "mismatches": [],
     "passed": false
   },
+  "ds2_format/gigachat_agent": {
+    "dataset": "ds2_format",
+    "runner": "gigachat_agent",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "42c6a3fc15ca2ab6"
+    ],
+    "time_avg_s": 12.83,
+    "time_max_s": 14.13,
+    "answer_ok": [
+      true,
+      true,
+      true
+    ],
+    "mismatches": [],
+    "passed": true
+  },
   "ds2_format/script": {
     "dataset": "ds2_format",
     "runner": "script",
@@ -223,6 +281,35 @@
     ],
     "time_avg_s": 9.68,
     "time_max_s": 10.94,
+    "answer_ok": [
+      true,
+      true,
+      true
+    ],
+    "mismatches": [],
+    "passed": true
+  },
+  "ds3_edge/gigachat_agent": {
+    "dataset": "ds3_edge",
+    "runner": "gigachat_agent",
+    "runs": 3,
+    "full_match_rate_min": 1.0,
+    "field_accuracy_min": {
+      "outcome": 1.0,
+      "group": 1.0,
+      "logist": 1.0,
+      "comment": 1.0
+    },
+    "cloud_form_ok_all": true,
+    "new_rows_cell_acc_min": 1.0,
+    "invented_values_total": 0,
+    "reasons_ok_all": true,
+    "reproducible": true,
+    "hashes": [
+      "f3ed0f7ff6b4db86"
+    ],
+    "time_avg_s": 9.04,
+    "time_max_s": 9.45,
     "answer_ok": [
       true,
       true,
