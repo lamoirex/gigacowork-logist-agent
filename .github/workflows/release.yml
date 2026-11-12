@@ -1,0 +1,117 @@
+name: Release
+
+# CD: тег vX.Y.Z → проверка версии и тестов → GitHub Release (agent.zip, testdata.zip, report.pdf)
+#                 → Docker-образ навыка в GitHub Container Registry.
+#   git tag v1.1.1 && git push origin v1.1.1
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Тег существующей версии, например v1.1.1"
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  verify:
+    name: Версия и тесты
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Тег совпадает с версией проекта и навыка
+        id: version
+        run: |
+          project=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          skill=$(python -c "import json; print(json.load(open('agent/skill/logist-distribution/references/rules.json'))['version'])")
+          echo "tag=$TAG project=$project skill=$skill"
+          test "$TAG" = "v$project" && test "$project" = "$skill"
+          echo "version=$project" >> "$GITHUB_OUTPUT"
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check . && ruff format --check .
+      - run: python -m pytest -q
+      - run: python tools/run_control.py --strict script --runs 3
+
+  github-release:
+    name: GitHub Release
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Инструменты для PDF (graphviz, шрифты; Chrome уже есть на раннере)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q graphviz fonts-dejavu-core
+          pip install -r requirements-dev.txt
+      - name: Архивы и PDF-отчёт
+        run: |
+          python tools/build.py
+          python tools/build_report.py
+      - name: Заметки к релизу из CHANGELOG.md
+        run: |
+          awk -v v="${{ needs.verify.outputs.version }}" '
+            $0 ~ "^## \\[" v "\\]" {on=1; next}
+            on && /^## \[/ {exit}
+            on {print}' CHANGELOG.md > release-notes.md
+          test -s release-notes.md || echo "Релиз $TAG" > release-notes.md
+      - name: Опубликовать релиз
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" dist/agent.zip dist/testdata.zip dist/report.pdf \
+            --title "Агент распределения ФУЛ $TAG" --notes-file release-notes.md --verify-tag
+
+  docker-image:
+    name: Docker-образ в GHCR
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ env.TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.TAG }}
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runtime
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
