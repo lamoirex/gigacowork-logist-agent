@@ -1,0 +1,2 @@
+-r requirements.txt
+markdown>=3.5      # сборка PDF-отчёта (tools/build_report.py)
