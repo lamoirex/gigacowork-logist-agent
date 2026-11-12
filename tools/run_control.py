@@ -19,10 +19,11 @@ import subprocess
 import sys
 import time
 from collections import defaultdict
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
-from evaluate import FIELDS, evaluate  # noqa: E402
+from evaluate import FIELDS, evaluate
 
 DATASETS = os.path.join(ROOT, "testdata", "datasets")
 RUNS = os.path.join(ROOT, "runs")
@@ -67,7 +68,7 @@ def collect():
                 continue
             log = {}
             if os.path.exists(os.path.join(rdir, "log.json")):
-                log = json.load(open(os.path.join(rdir, "log.json"), encoding="utf-8"))
+                log = json.loads(Path(rdir, "log.json").read_text(encoding="utf-8"))
             ev = evaluate(exp, res)
             ev["time_total_s"] = log.get("time_total_s")
             ev["answer_matches_template"] = log.get("answer_matches_template")

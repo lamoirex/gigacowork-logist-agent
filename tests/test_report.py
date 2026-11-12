@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 from helpers import DATASETS, SCRIPTS
 
@@ -22,7 +23,7 @@ class TestChatAnswer(unittest.TestCase):
     def test_chat_message_file_matches_stdout_block(self):
         with tempfile.TemporaryDirectory() as out:
             stdout = self.run_ds("ds1_base", out)
-            msg = open(os.path.join(out, "chat_message.txt"), encoding="utf-8").read().strip()
+            msg = Path(out, "chat_message.txt").read_text(encoding="utf-8").strip()
             block = stdout.split("=== ОТВЕТ ДЛЯ ЧАТА ===")[1].split("=== КОНЕЦ ОТВЕТА ===")[0].strip()
             self.assertEqual(msg, block)
             for f in ("distribution_result.xlsx", "summary.json"):
@@ -31,12 +32,12 @@ class TestChatAnswer(unittest.TestCase):
     def test_chat_message_is_short_and_grouped(self):
         with tempfile.TemporaryDirectory() as out:
             self.run_ds("ds1_base", out)
-            msg = open(os.path.join(out, "chat_message.txt"), encoding="utf-8").read()
+            msg = Path(out, "chat_message.txt").read_text(encoding="utf-8")
         lines = msg.strip().splitlines()
         self.assertLessEqual(len(lines), 12)
         self.assertIn("• Новых строк для Cloud: 20 (с логистом — 14, без логиста — 6)", lines)
         self.assertIn("Срочно:", lines)
-        self.assertTrue(any(l.strip().startswith("– нет номера заказа") and "УЛ-26-0108" in l for l in lines))
+        self.assertTrue(any(line.strip().startswith("– нет номера заказа") and "УЛ-26-0108" in line for line in lines))
         self.assertNotIn("===", msg)
 
 

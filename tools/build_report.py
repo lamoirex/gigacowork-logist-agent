@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from pathlib import Path
 
 import markdown
 import openpyxl
@@ -24,7 +25,7 @@ RUN = os.path.join(ROOT, "runs", "ds1_base", "claude_1")
 
 
 def read(*p):
-    return open(os.path.join(ROOT, *p), encoding="utf-8").read()
+    return Path(ROOT, *p).read_text(encoding="utf-8")
 
 
 def first_table_after(text, heading=None):
@@ -54,7 +55,7 @@ def journal_excerpt(n=12):
 
 
 def transcript():
-    t = open(os.path.join(RUN, "transcript.md"), encoding="utf-8").read()
+    t = Path(RUN, "transcript.md").read_text(encoding="utf-8")
     t = re.sub(r"^# ", "### ", t, flags=re.M)
     return t.replace("---\n", "\n")
 
@@ -75,7 +76,7 @@ def fill(md, b):
     for k, v in b.items():
         md = re.sub(
             rf"<!-- BEGIN:{k} -->.*?<!-- END:{k} -->",
-            lambda _m: f"<!-- BEGIN:{k} -->\n{v}\n<!-- END:{k} -->",
+            lambda _m, k=k, v=v: f"<!-- BEGIN:{k} -->\n{v}\n<!-- END:{k} -->",
             md,
             flags=re.S,
         )
@@ -131,7 +132,7 @@ def to_html(md):
     if b64:
         img = f'<div class="diagram"><img src="data:image/png;base64,{b64}"></div>'
     else:
-        svg = open(os.path.join(DOCS, "algorithm.svg"), encoding="utf-8").read()
+        svg = Path(DOCS, "algorithm.svg").read_text(encoding="utf-8")
         img = f'<div class="diagram">{svg[svg.index("<svg") :]}</div>'
     html = re.sub(r'<p><img alt="Алгоритм" src="algorithm.svg" ?/?></p>', img, html)
     return f"<!DOCTYPE html><html lang='ru'><head><meta charset='utf-8'><style>{CSS}</style></head><body>{html}</body></html>"
@@ -143,7 +144,7 @@ def print_pdf(html, out):
         raise SystemExit("Нужен Chrome/Chromium для печати PDF (или запустите с --no-pdf).")
     with tempfile.TemporaryDirectory() as d:
         p = os.path.join(d, "report.html")
-        open(p, "w", encoding="utf-8").write(html)
+        Path(p).write_text(html, encoding="utf-8")
         subprocess.run(
             [
                 chrome,
@@ -166,8 +167,8 @@ def main():
     ap.add_argument("--no-pdf", action="store_true")
     a = ap.parse_args()
     path = os.path.join(DOCS, "report.md")
-    md = fill(open(path, encoding="utf-8").read(), blocks())
-    open(path, "w", encoding="utf-8").write(md)
+    md = fill(Path(path).read_text(encoding="utf-8"), blocks())
+    Path(path).write_text(md, encoding="utf-8")
     if not a.no_pdf:
         os.makedirs(os.path.join(ROOT, "dist"), exist_ok=True)
         out = os.path.join(ROOT, "dist", "report.pdf")

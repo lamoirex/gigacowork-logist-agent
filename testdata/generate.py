@@ -931,7 +931,7 @@ def write_table(path, sheet, headers, rows, title_rows=(), extra_cols=None, orde
     ws.title = sheet
     hdr = list(order or headers)
     if extra_cols:
-        for pos, name, fn in extra_cols:
+        for pos, name, _fn in extra_cols:
             hdr.insert(pos, name)
     for t in title_rows:
         ws.append([t])

@@ -12,12 +12,14 @@ DATASETS = os.path.join(ROOT, "testdata", "datasets")
 sys.path.insert(0, SCRIPTS)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
-import openpyxl  # noqa: E402
+from pathlib import Path
 
-import normalize as N  # noqa: E402
+import openpyxl
 
-RULES = json.load(open(os.path.join(SKILL, "references", "rules.json"), encoding="utf-8"))
-COUNTRIES = json.load(open(os.path.join(SKILL, "references", "countries.json"), encoding="utf-8"))
+import normalize as N
+
+RULES = json.loads(Path(SKILL, "references", "rules.json").read_text(encoding="utf-8"))
+COUNTRIES = json.loads(Path(SKILL, "references", "countries.json").read_text(encoding="utf-8"))
 MARKERS = {N.norm_text(m) for m in RULES["empty_markers"]}
 
 

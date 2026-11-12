@@ -7,15 +7,15 @@ import unittest
 
 from helpers import CLOUD_H, COUNTRIES, FUL_H, RULES, STAFF, cloud_row, ful_row, write_wb  # задаёт sys.path
 
-import engine as E  # noqa: E402
-from xlreader import detect_tables  # noqa: E402
+import engine as E
+from xlreader import detect_tables
 
 
 class TestEngine(unittest.TestCase):
     def run_case(self, cloud, ful, staff=STAFF):
         with tempfile.TemporaryDirectory() as d:
-            write_wb(os.path.join(d, "a.xlsx"), {"x": [CLOUD_H] + cloud})
-            write_wb(os.path.join(d, "b.xlsx"), {"y": [FUL_H] + ful})
+            write_wb(os.path.join(d, "a.xlsx"), {"x": [CLOUD_H, *cloud]})
+            write_wb(os.path.join(d, "b.xlsx"), {"y": [FUL_H, *ful]})
             write_wb(os.path.join(d, "c.xlsx"), {"z": staff})
             tables, _ = detect_tables([os.path.join(d, f) for f in ("a.xlsx", "b.xlsx", "c.xlsx")], RULES["headers"])
             res = E.Engine(RULES, COUNTRIES).run(tables)
@@ -90,7 +90,7 @@ class TestEngine(unittest.TestCase):
         self.assertNotEqual(rows["S0000012"]["logist"], "не определено")
 
     def test_ambiguous_short_name(self):
-        staff = STAFF + [["Орлова Мария Ивановна", "Работает", "Специалист по авиаперевозкам", "9"]]
+        staff = [*STAFF, ["Орлова Мария Ивановна", "Работает", "Специалист по авиаперевозкам", "9"]]
         cloud = [cloud_row("S0000001", "A", "Орлова М."), cloud_row("S0000002", "A", "Орлова М.")]
         dec, res = self.run_case(cloud, [ful_row("1", "S0000010", "A")], staff=staff)
         self.assertEqual(dec["1"].logist.fio, "Лебедев Артём Игоревич")  # история не засчитана, ничья → алфавит

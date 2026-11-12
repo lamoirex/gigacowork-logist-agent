@@ -6,14 +6,14 @@ import unittest
 
 from helpers import CLOUD_H, FUL_H, RULES, STAFF, ful_row, write_wb  # задаёт sys.path
 
-from xlreader import InputError, detect_tables  # noqa: E402
+from xlreader import InputError, detect_tables
 
 
 class TestReaderRobustness(unittest.TestCase):
     def test_shuffled_columns_title_rows_extra_columns(self):
         with tempfile.TemporaryDirectory() as d:
-            hdr = ["Склад"] + list(reversed(FUL_H)) + ["Вес"]
-            row = ["X"] + list(reversed(ful_row("1", "S0000010", "A"))) + [5]
+            hdr = ["Склад", *list(reversed(FUL_H)), "Вес"]
+            row = ["X", *list(reversed(ful_row("1", "S0000010", "A"))), 5]
             write_wb(os.path.join(d, "ful.xlsx"), {"Отчёт": [["Шапка отчёта"], [], hdr, row]})
             write_wb(os.path.join(d, "cl.xlsx"), {"Лист1": [CLOUD_H]})
             write_wb(os.path.join(d, "st.xlsx"), {"Лист1": STAFF})

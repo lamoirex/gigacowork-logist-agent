@@ -17,6 +17,7 @@ import json
 import os
 import re
 import shutil
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 START, END = "=== ОТВЕТ ДЛЯ ЧАТА ===", "=== КОНЕЦ ОТВЕТА ==="
@@ -39,6 +40,12 @@ def check_answer(answer, template):
     return exact, leaked
 
 
+def _read(folder, name):
+    """Текст файла сессии или пустая строка, если файла нет."""
+    path = Path(folder, name)
+    return path.read_text(encoding="utf-8") if path.exists() else ""
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sessions")
@@ -47,7 +54,7 @@ def main():
     a = ap.parse_args()
     # Полное время ответа агента по данным harness (от запуска до финального ответа), если есть
     dpath = os.path.join(a.sessions, "durations.json")
-    durations = json.load(open(dpath)) if os.path.exists(dpath) else {}
+    durations = json.loads(Path(dpath).read_text(encoding="utf-8")) if os.path.exists(dpath) else {}
     for name in sorted(os.listdir(a.sessions)):
         m = re.fullmatch(r"(.+)_(\d+)", name)
         src = os.path.join(a.sessions, name)
@@ -59,11 +66,8 @@ def main():
         res = os.path.join(src, "outputs", "distribution_result.xlsx")
         if os.path.exists(res):
             shutil.copyfile(res, os.path.join(dst, "distribution_result.xlsx"))
-        read = lambda f: (
-            open(os.path.join(src, f), encoding="utf-8").read() if os.path.exists(os.path.join(src, f)) else ""
-        )  # noqa: E731
-        stdout, answer = read("stdout.txt"), read("answer.md").strip()
-        t0, t1 = read("t_start").strip(), read("t_end").strip()
+        stdout, answer = _read(src, "stdout.txt"), _read(src, "answer.md").strip()
+        t0, t1 = _read(src, "t_start").strip(), _read(src, "t_end").strip()
         total = durations.get(name) or (round(float(t1) - float(t0), 2) if t0 and t1 else None)
         exact, leaked = check_answer(answer, template_from_stdout(stdout))
         log = {
@@ -76,7 +80,7 @@ def main():
             "final_answer": answer,
             "skill_stdout": stdout,
         }
-        json.dump(log, open(os.path.join(dst, "log.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+        Path(dst, "log.json").write_text(json.dumps(log, ensure_ascii=False, indent=2), encoding="utf-8")
         with open(os.path.join(dst, "transcript.md"), "w", encoding="utf-8") as fh:
             fh.write(f"# Агентный прогон ({a.runner} {a.model}) — {ds}, прогон {k}\n\n")
             fh.write(

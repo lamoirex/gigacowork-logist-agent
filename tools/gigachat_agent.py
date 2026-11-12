@@ -32,6 +32,7 @@ import sys
 import time
 import urllib.request
 import uuid
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILL_DIR = os.path.join(ROOT, "agent", "skill", "logist-distribution")
@@ -117,7 +118,7 @@ def run_skill(files, out_dir):
     res = {"exit_code": r.returncode, "stdout": r.stdout + (r.stderr[-2000:] if r.stderr else "")}
     cm = os.path.join(out_dir, "chat_message.txt")
     if r.returncode == 0 and os.path.exists(cm):
-        res["chat_message"] = open(cm, encoding="utf-8").read()
+        res["chat_message"] = Path(cm).read_text(encoding="utf-8")
     return res, time.perf_counter() - t0
 
 
@@ -130,8 +131,8 @@ def list_attachments(path):
 
 
 def system_messages():
-    sp = open(SYSTEM_PROMPT, encoding="utf-8").read()
-    skill = open(os.path.join(SKILL_DIR, "SKILL.md"), encoding="utf-8").read()
+    sp = Path(SYSTEM_PROMPT).read_text(encoding="utf-8")
+    skill = Path(SKILL_DIR, "SKILL.md").read_text(encoding="utf-8")
     return [{"role": "system", "content": sp + "\n\n# Подключённый навык\n\n" + skill}]
 
 
@@ -145,7 +146,7 @@ def one_run(gc, files, out_dir, mode):
     os.makedirs(out_dir, exist_ok=True)
     log = {"mode": mode, "model": gc.model, "files": files, "steps": []}
     t0 = time.perf_counter()
-    messages = system_messages() + [user_message(files)]
+    messages = [*system_messages(), user_message(files)]
     script_time = 0.0
     final = None
     if mode == "simple":

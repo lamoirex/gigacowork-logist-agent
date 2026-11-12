@@ -21,6 +21,7 @@ import datetime as dt
 import hashlib
 import json
 import sys
+from pathlib import Path
 
 import openpyxl
 
@@ -64,7 +65,7 @@ def content_hash(wb):
 
 
 def evaluate(expected_path, result_path):
-    exp = json.load(open(expected_path, encoding="utf-8"))
+    exp = json.loads(Path(expected_path).read_text(encoding="utf-8"))
     U = exp["undefined"]
     wb = openpyxl.load_workbook(result_path, data_only=True)
     out = {"dataset": exp["dataset"], "result": result_path, "errors": []}
@@ -161,7 +162,7 @@ def main():
     a = ap.parse_args()
     m = evaluate(a.expected, a.result)
     if a.json:
-        json.dump(m, open(a.json, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+        Path(a.json).write_text(json.dumps(m, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
         f"{m['dataset']}: full_match={m['full_match_rate']:.1%} fields={m['field_accuracy']} "
         f"cloud_form_ok={m['cloud_form_ok']} cells={m['new_rows_cell_acc']:.1%} invented={m['invented_values']} "
