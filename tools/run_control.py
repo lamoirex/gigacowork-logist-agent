@@ -54,6 +54,23 @@ def run_script(n):
             print(f"{ds} script_{i}: код {r.returncode}, {dt_:.2f} с")
 
 
+def rescore_followups(log, questions_path):
+    """Оценка уточняющих вопросов по сохранённым ответам и текущим критериям (без повторных запросов к модели)."""
+    if not log.get("followups") or not os.path.exists(questions_path):
+        return None
+    from gigachat_agent import check_followup
+
+    criteria = {q["question"]: q for q in json.loads(Path(questions_path).read_text(encoding="utf-8"))["questions"]}
+    passed = total = 0
+    for f in log["followups"]:
+        q = criteria.get(f["question"])
+        if q is None:
+            continue
+        total += 1
+        passed += not check_followup(f["answer"], q["must_contain"], q.get("must_not_contain", ()))
+    return passed, total
+
+
 def collect():
     groups = defaultdict(list)
     for ds in sorted(os.listdir(RUNS)):
@@ -74,7 +91,7 @@ def collect():
             ev["time_total_s"] = log.get("time_total_s")
             ev["answer_matches_template"] = log.get("answer_matches_template")
             ev["answer_has_service_markers"] = log.get("answer_has_service_markers")
-            ev["followups"] = (log["followups_passed"], log["followups_total"]) if "followups_total" in log else None
+            ev["followups"] = rescore_followups(log, os.path.join(DATASETS, ds, "followups.json"))
             ev["run"] = run
             groups[(ds, m.group(1))].append(ev)
     return groups
