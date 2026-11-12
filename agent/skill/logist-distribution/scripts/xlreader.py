@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from normalize import norm_header, to_str
 
 HEADER_SCAN_ROWS = 30
+RESULT_CREATOR = "logist-distribution"  # метка в свойствах файла результата
 ROLES = ("ful", "cloud", "staff")
 ROLE_TITLES = {"ful": "Выгрузка ФУЛ (1С)", "cloud": "Реестр Cloud", "staff": "Сотрудники (1С)"}
 
@@ -55,6 +56,9 @@ def _read_xlsx(path):
     except Exception as exc:  # повреждённый файл, не Excel и т.п.
         raise InputError(f"Не удалось открыть {os.path.basename(path)}: {exc}") from exc
     sheets = []
+    if (wb.properties.creator or "") == RESULT_CREATOR:
+        wb.close()
+        return []  # это результат прошлого запуска агента — не вход
     for ws in wb.worksheets:
         rows = [list(r) for r in ws.iter_rows(values_only=True)]
         sheets.append(Sheet(path, ws.title, rows))
