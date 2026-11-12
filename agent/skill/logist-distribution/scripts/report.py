@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
+import os
 
 import engine as E
 
@@ -271,3 +273,50 @@ def write_excel(res: E.Result, path: str, eng: E.Engine, inputs_desc: list, warn
     _style_sheet(ws, [34, 10, 40, 24, 12, 10, 40, 18, 12, 12], U)
 
     wb.save(path)
+
+
+def chat_message(res: E.Result, out_name: str) -> str:
+    s = res.stats
+    lines = [
+        f"Готово: {out_name}",
+        f"• Новых строк для Cloud: {s['new_rows']} (с логистом — {s['new_rows_with_logist']}, без логиста — {s['new_rows_without_logist']})",
+        f"• Повторных отправок: {s['repeats_cloud'] + s['repeats_batch']} (заказ уже в Cloud — {s['repeats_cloud']}, дубль в пачке — {s['repeats_batch']})",
+        f"• Возможных пропусков: {s['possible_misses']}",
+        f"• Требует решения: {s['attention_total']} (блокирующих — {s['attention_blocking']})",
+    ]
+    blocking = [a for a in res.attention if a.priority == E.BLOCK]
+    if blocking:
+        lines.append("Сначала посмотрите:")
+        for a in blocking[:5]:
+            ref = " / ".join(x for x in (f"ФУЛ {a.ful_number}" if a.ful_number else "", a.order) if x)
+            lines.append(f"  – {ref}: {a.problem}" if ref else f"  – {a.problem}")
+        if len(blocking) > 5:
+            lines.append(f"  – и ещё {len(blocking) - 5} — на листе «Требует внимания».")
+    lines.append("Обоснование по каждому ФУЛ — на листе «Журнал решений».")
+    return "\n".join(lines)
+
+
+def write_summary(res: E.Result, path: str, out_xlsx: str, eng: E.Engine, inputs_desc, warnings):
+    data = {
+        "result_file": out_xlsx,
+        "stats": res.stats,
+        "chat_message": chat_message(res, os.path.basename(out_xlsx)),
+        "attention": [a.__dict__ for a in res.attention],
+        "inputs": dict(inputs_desc),
+        "warnings": warnings,
+        "assignments": [
+            {
+                "ful": d.ful.number,
+                "order": d.ful.order,
+                "outcome": d.outcome,
+                "group": eng.group_title(d.group) if d.outcome in (E.NEW, E.POSSIBLE_MISS) else "",
+                "logist": eng.short(d.logist) if d.logist else "",
+                "rule": d.rule,
+                "reason": d.reason,
+            }
+            for d in res.decisions
+        ],
+    }
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False, indent=2, default=str)
+    return data
