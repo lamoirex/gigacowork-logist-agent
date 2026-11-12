@@ -129,3 +129,32 @@ def supplier_key(name, legal_forms) -> str:
     lf = set(legal_forms)
     core = [t for t in tokens if t not in lf]
     return " ".join(core or tokens)
+
+
+# ---------------------------------------------------------------- способ доставки и страна
+
+
+def norm_method(value, methods: dict, markers):
+    """-> (канон или None, 'ok' | 'empty' | 'unknown')."""
+    if is_empty(value, markers):
+        return None, "empty"
+    s = norm_text(value)
+    s2 = _SPACES.sub(" ", s.replace("_", " ").replace("-", " ")).strip()
+    for canon, aliases in methods.items():
+        for a in aliases:
+            a = norm_text(a)
+            if s == a or s2 == _SPACES.sub(" ", a.replace("-", " ")):
+                return canon, "ok"
+    return None, "unknown"
+
+
+def norm_country(value, countries: dict, markers):
+    """-> (отображаемое значение или None, is_china: bool | None)."""
+    if is_empty(value, markers):
+        return None, None
+    raw = to_str(value)
+    s = norm_text(raw).strip(" .")
+    china = {norm_text(a) for a in countries["china_aliases"]}
+    if s in china:
+        return raw, True
+    return raw, False
