@@ -1,0 +1,52 @@
+digraph G {
+  graph [rankdir=TB, fontname="DejaVu Sans", fontsize=11, nodesep=0.25, ranksep=0.28, bgcolor="white", pad=0.2];
+  node  [shape=box, style="rounded,filled", fillcolor="#F2F5F9", color="#4A6278", fontname="DejaVu Sans", fontsize=10, margin="0.12,0.05"];
+  edge  [fontname="DejaVu Sans", fontsize=9, color="#4A6278"];
+
+  in   [label="3 выгрузки Excel (любые имена, листы, порядок колонок)\nроль файла и колонки — по заголовкам", fillcolor="#E3ECF7"];
+  err  [label="ОШИБКА: какой колонки / файла не хватает", fillcolor="#FCE4D6"];
+  sort [label="ФУЛ по порядку: дата → номер УЛ → строка"];
+  q1   [label="Один номер заказа\nв комментарии?", shape=diamond, fillcolor="#FFFFFF"];
+  q2   [label="Та же строка\n(номер УЛ + заказ) уже была?", shape=diamond, fillcolor="#FFFFFF"];
+  q3   [label="Заказ есть\nв Cloud?", shape=diamond, fillcolor="#FFFFFF"];
+  q4   [label="Заказ уже был\nв этой пачке?", shape=diamond, fillcolor="#FFFFFF"];
+  q5   [label="Дата ФУЛ < последней\nзаписи Cloud?", shape=diamond, fillcolor="#FFFFFF"];
+  noord[label="НЕТ ЗАКАЗА\nстрока не создаётся → «Срочно»", fillcolor="#FCE4D6"];
+  dup  [label="ТЕХ. ДУБЛЬ\nучтён один раз", fillcolor="#FFF2CC"];
+  repc [label="ПОВТОР (Cloud)\n«Повторная отправка ФУЛа, дата»", fillcolor="#FFF2CC"];
+  repb [label="ПОВТОР В ПАЧКЕ\nкомментарий в строку первого ФУЛ", fillcolor="#FFF2CC"];
+  miss [label="ВОЗМОЖНЫЙ ПРОПУСК\nне в новых строках; группа и логист — предложение", fillcolor="#FFF2CC"];
+  new  [label="НОВЫЙ", fillcolor="#E2EFDA"];
+
+  m    [label="Способ\nдоставки?", shape=diamond, fillcolor="#FFFFFF"];
+  c    [label="Страна\nотправления?", shape=diamond, fillcolor="#FFFFFF"];
+  air  [label="Авиаперевозки", fillcolor="#E2EFDA"];
+  ved  [label="ВЭД", fillcolor="#E2EFDA"];
+  mul  [label="Мультимодальные", fillcolor="#E2EFDA"];
+  gu   [label="Группа «не определено»\nлогист «не определено» → «Срочно»", fillcolor="#FCE4D6"];
+
+  pin  [label="Поставщику в этой группе\nуже назначен логист в пачке?", shape=diamond, fillcolor="#FFFFFF"];
+  pinr [label="Тот же логист\n(один поставщик — один логист)", fillcolor="#E2EFDA"];
+  hist [label="Предпочтительный = чаще всех вёл поставщика\n(только сотрудники группы, не ассистенты/руководители)"];
+  av   [label="Есть и\n«Работает»?", shape=diamond, fillcolor="#FFFFFF"];
+  pref [label="Назначить предпочтительного", fillcolor="#E2EFDA"];
+  ll   [label="Наименее загруженный доступный в группе\n(«в работе» в Cloud + назначенные в пачке;\nничья → меньше в пачке → ФИО → код)"];
+  any  [label="Есть\nдоступные?", shape=diamond, fillcolor="#FFFFFF"];
+  llr  [label="Назначить", fillcolor="#E2EFDA"];
+  none [label="Логист «не определено»\nв другую группу не передаём → «Срочно»", fillcolor="#FCE4D6"];
+
+  in -> sort; in -> err [label="не распознан", style=dashed];
+  sort -> q1;
+  q1 -> noord [label="нет / несколько"]; q1 -> q2 [label="да"];
+  q2 -> dup [label="да"]; q2 -> q3 [label="нет"];
+  q3 -> repc [label="да"]; q3 -> q4 [label="нет"];
+  q4 -> repb [label="да"]; q4 -> q5 [label="нет"];
+  q5 -> miss [label="да"]; q5 -> new [label="нет"];
+  new -> m;
+  m -> air [label="air"]; m -> gu [label="пусто /\nнезнакомый"]; m -> c [label="sea, truck,\nrailway…"];
+  c -> ved [label="Китай,\nГонконг"]; c -> mul [label="другая"]; c -> gu [label="пусто"];
+  air -> pin; ved -> pin; mul -> pin;
+  pin -> pinr [label="да"]; pin -> hist [label="нет"];
+  hist -> av; av -> pref [label="да"]; av -> ll [label="нет / новый\nпоставщик"];
+  ll -> any; any -> llr [label="да"]; any -> none [label="нет"];
+}
