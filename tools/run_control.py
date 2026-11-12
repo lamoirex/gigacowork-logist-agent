@@ -3,6 +3,7 @@
 
     python3 tools/run_control.py script --runs 3   # прогнать скрипт навыка 3 раза на каждом наборе
     python3 tools/run_control.py report            # собрать метрики по всем прогонам в runs/
+    python3 tools/run_control.py --strict script   # для CI: код выхода 1 при регрессии метрик
 
 Прогоны лежат в runs/<набор>/<исполнитель>_<N>/ (distribution_result.xlsx + log.json).
 Исполнители: script (скрипт напрямую), gigachat_agent / gigachat_simple (tools/gigachat_agent.py),
@@ -158,6 +159,7 @@ def report():
     with open(os.path.join(RUNS, "REPORT.md"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
     print("\n".join(lines))
+    return rows
 
 
 def main():
@@ -166,11 +168,22 @@ def main():
     s = sub.add_parser("script")
     s.add_argument("--runs", type=int, default=3)
     sub.add_parser("report")
+    ap.add_argument(
+        "--strict",
+        action="store_true",
+        help="код выхода 1, если хоть одна группа прогонов не прошла пороги (для CI)",
+    )
     a = ap.parse_args()
     if a.cmd == "script":
         run_script(a.runs)
-    report()
+    rows = report()
+    # claude-v1 — исторический раунд на навыке v1.0, он намеренно не проходит проверку ответа в чат
+    failed = [f"{r['dataset']}/{r['runner']}" for r in rows if not r["passed"] and r["runner"] != "claude-v1"]
+    if a.strict and failed:
+        print("\nНе прошли пороги: " + ", ".join(failed), file=sys.stderr)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
