@@ -30,6 +30,7 @@ import ssl
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 import uuid
 from pathlib import Path
@@ -84,7 +85,25 @@ DECISION_FUNCTION = {
     },
     "return_parameters": {
         "type": "object",
-        "properties": {"decisions": {"type": "array", "items": {"type": "object"}, "description": "найденные решения"}},
+        "properties": {
+            "decisions": {
+                "type": "array",
+                "description": "найденные решения из журнала",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "ful": {"type": "string", "description": "номер ФУЛ"},
+                        "order": {"type": "string", "description": "номер заказа"},
+                        "outcome": {"type": "string", "description": "статус обработки ФУЛ"},
+                        "group": {"type": "string", "description": "группа логистов"},
+                        "logist": {"type": "string", "description": "назначенный логист (пусто — не назначен)"},
+                        "rule": {"type": "string", "description": "правило распределения"},
+                        "reason": {"type": "string", "description": "обоснование решения"},
+                    },
+                },
+            },
+            "note": {"type": "string", "description": "пояснение, если ничего не найдено"},
+        },
     },
 }
 
@@ -111,8 +130,12 @@ class GigaChat:
 
     def _post(self, url, data, headers):
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-        with urllib.request.urlopen(req, context=self.ctx, timeout=self.timeout) as r:
-            return json.loads(r.read().decode("utf-8"))
+        try:
+            with urllib.request.urlopen(req, context=self.ctx, timeout=self.timeout) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")[:2000]
+            raise SystemExit(f"GigaChat API: HTTP {exc.code} {exc.reason} — {url}\n{body}") from None
 
     def auth(self):
         if self.token and time.time() * 1000 < self.exp - 60_000:
