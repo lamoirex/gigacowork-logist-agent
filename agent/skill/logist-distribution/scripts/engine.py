@@ -99,7 +99,7 @@ class Decision:
     reason: str = ""
     candidates: str = ""
     cloud_row: CloudRow | None = None
-    first: "Decision | None" = None  # для повтора в пачке — первый ФУЛ заказа
+    first: Decision | None = None  # для повтора в пачке — первый ФУЛ заказа
     repeats: list = field(default_factory=list)
     new_comment: str = ""
 
@@ -321,7 +321,7 @@ class Engine:
         pool = [e for e in emps if e.group == group and not e.excluded and e.available]
         if not pool:
             return None
-        return sorted(pool, key=lambda e: (e.load, e.load_batch) + e.sort_key)[0]
+        return sorted(pool, key=lambda e: (e.load, e.load_batch, *e.sort_key))[0]
 
     def choose_logist(self, f: Ful, group, emps, cloud, pins, commit=True):
         """-> (employee | None, rule, reason). При commit=False ничего не меняет (для пропусков)."""
@@ -357,7 +357,7 @@ class Engine:
         if hist:
             by_fio = {e.fio: e for e in members}
             ranked = sorted(
-                hist, key=lambda fio: (-hist[fio], -last[fio].timestamp(), by_fio[fio].load) + by_fio[fio].sort_key
+                hist, key=lambda fio: (-hist[fio], -last[fio].timestamp(), by_fio[fio].load, *by_fio[fio].sort_key)
             )
             pref = by_fio[ranked[0]]
             hist_txt = ", ".join(f"{self.short(by_fio[x])} — {hist[x]}" for x in ranked)
@@ -399,9 +399,8 @@ class Engine:
                 )
             reason = f"{why}; назначен наименее загруженный в группе: {self.short(e)} (в работе {e.load})"
 
-        if commit and e is not None:
-            if f.supplier_key:
-                pins[pin_key] = e
+        if commit and e is not None and f.supplier_key:
+            pins[pin_key] = e
         return e, rule, reason
 
     # ---------- формат имени для Cloud
@@ -708,7 +707,7 @@ class Engine:
         for rp in repeats:
             by_order[rp["cloud_row"].order].append(rp)
         sep = self.r["comment_separator"]
-        for o, items in by_order.items():
+        for items in by_order.values():
             cr = items[0]["cloud_row"]
             acc = cr.comment
             for rp in items:

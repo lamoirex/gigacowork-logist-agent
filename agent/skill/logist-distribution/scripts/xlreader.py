@@ -168,7 +168,7 @@ def _best_partial(sheets, spec):
     """Для сообщения об ошибке: лучший неполный кандидат роли и чего в нём не хватает."""
     best = None
     for sh in sheets:
-        for r_idx, row in enumerate(sh.rows[:HEADER_SCAN_ROWS]):
+        for row in sh.rows[:HEADER_SCAN_ROWS]:
             if not row:
                 continue
             columns, _ = _match_header_row(row, spec)
@@ -193,7 +193,7 @@ def detect_tables(paths, headers_spec):
     warnings, tables, used_sheets = [], {}, set()
     # Сначала самые уверенные совпадения: высокий score, затем больше строк данных.
     cands.sort(key=lambda c: (-c[1], -c[2], c[3], c[4]))
-    for role, score, data_rows, s_idx, r_idx, columns, titles in cands:
+    for role, _score, _data_rows, s_idx, r_idx, columns, titles in cands:
         if role in tables or s_idx in used_sheets:
             continue
         sh = sheets[s_idx]

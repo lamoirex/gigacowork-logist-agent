@@ -191,7 +191,7 @@ def parse_short_name(value):
         bare = t.strip(".,")
         if not bare:
             continue
-        if t.endswith(".") and len(bare) <= 2 or len(bare) == 1:
+        if (t.endswith(".") and len(bare) <= 2) or len(bare) == 1:
             initials.append(bare[0])
         else:
             words.append(bare)
@@ -209,10 +209,8 @@ def name_matches(short, fio) -> bool:
     if not surname or surname != fs:
         return False
     full = [ff, fp]
-    for i, ini in enumerate(initials):
-        if i >= len(full) or not full[i] or full[i] != ini:
-            return False
-    return True
+    # каждый указанный инициал должен совпасть с инициалом имени / отчества
+    return all(i < len(full) and full[i] == ini for i, ini in enumerate(initials))
 
 
 def short_style(value) -> str:

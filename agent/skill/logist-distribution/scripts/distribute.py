@@ -24,9 +24,9 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-import engine as E  # noqa: E402
-import report as R  # noqa: E402
-from xlreader import ROLE_TITLES, InputError, detect_tables  # noqa: E402
+import engine as E
+import report as R
+from xlreader import ROLE_TITLES, InputError, detect_tables
 
 RESULT_NAME = "distribution_result.xlsx"
 SUMMARY_NAME = "summary.json"
