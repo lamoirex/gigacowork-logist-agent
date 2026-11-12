@@ -33,7 +33,7 @@ USER agent
 VOLUME ["/data"]
 LABEL org.opencontainers.image.title="logist-distribution" \
       org.opencontainers.image.description="Навык GigaCowork: распределение ФУЛ между логистами и строки реестра Cloud" \
-      org.opencontainers.image.version="1.1.1"
+      org.opencontainers.image.version="1.2.0"
 ENTRYPOINT ["python", "/app/skill/scripts/distribute.py"]
 CMD ["/data/in", "--out", "/data/out"]
 
