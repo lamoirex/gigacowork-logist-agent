@@ -71,7 +71,9 @@ def main(argv=None) -> int:
     t0 = time.perf_counter()
     paths = _expand([p for p in (args.ful, args.cloud, args.staff) if p] + list(args.inputs))
     if not paths:
-        print("ОШИБКА: не переданы входные файлы. Нужны три выгрузки Excel: ФУЛ из 1С, реестр Cloud, сотрудники из 1С.")
+        dirs = [p for p in (args.ful, args.cloud, args.staff, *args.inputs) if p and os.path.isdir(p)]
+        where = f" в папке {', '.join(dirs)} нет файлов Excel (.xlsx, .xls)." if dirs else " не переданы входные файлы."
+        print(f"ОШИБКА:{where} Нужны три выгрузки Excel: ФУЛ из 1С, реестр Cloud, сотрудники из 1С.")
         return 2
     with open(args.rules, encoding="utf-8") as fh:
         rules = json.load(fh)

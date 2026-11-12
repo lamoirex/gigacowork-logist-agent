@@ -68,6 +68,13 @@ class TestCli(unittest.TestCase):
                 run_main([os.path.join(DATASETS, "ds1_base", "input"), "--out", out])
             self.assertEqual(sorted(os.listdir(out)), [])
 
+    def test_empty_folder_is_explained(self):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "readme.txt").write_text("не Excel", encoding="utf-8")
+            code, stdout = run_main([d])
+            self.assertEqual(code, 2)
+            self.assertIn("нет файлов Excel", stdout)
+
     def test_missing_file_role_is_explained(self):
         with tempfile.TemporaryDirectory() as d:
             write_wb(os.path.join(d, "cloud.xlsx"), {"x": [CLOUD_H]})
