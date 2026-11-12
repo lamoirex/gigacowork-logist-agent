@@ -4,7 +4,7 @@
     python3 tools/build_report.py [--no-pdf]
 
 Вставки между <!-- BEGIN:x --> и <!-- END:x -->: вопросы (docs/questions.md), покрытие ловушек
-(testdata/README.md), метрики (runs/REPORT.md), лог прогона и фрагмент журнала (runs/ds1_base/claude_1),
+(testdata/README.md), метрики (runs/REPORT.md), лог прогона и фрагмент журнала (runs/ds1_base/gigachat_agent_1),
 мотивация (docs/motivation.local.md — личный файл, в git не попадает; если его нет, раздел пуст). PDF печатается через headless Chrome/Chromium.
 """
 
@@ -21,7 +21,7 @@ import openpyxl
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(ROOT, "docs")
-RUN = os.path.join(ROOT, "runs", "ds1_base", "claude_1")
+RUN = os.path.join(ROOT, "runs", "ds1_base", "gigachat_agent_1")
 
 
 def read(*p):
@@ -57,6 +57,13 @@ def journal_excerpt(n=12):
 def transcript():
     t = Path(RUN, "transcript.md").read_text(encoding="utf-8")
     t = re.sub(r"^# ", "### ", t, flags=re.M)
+    # многострочный ответ агента — блоком, иначе в PDF строки склеиваются в абзац
+    t = re.sub(
+        r"(\*\*Ответ агента:\*\*\n\n)(?!```)(.*?)(\n\n---)",
+        lambda m: f"{m.group(1)}```text\n{m.group(2)}\n```{m.group(3)}",
+        t,
+        flags=re.S,
+    )
     return t.replace("---\n", "\n")
 
 
@@ -107,8 +114,8 @@ hr { border: 0; border-top: 1px solid #d5dde6; margin: 14px 0; }
 img, svg { max-width: 100%; }
 table.wide { font-size: 6.8pt; }
 table.wide td, table.wide th { overflow-wrap: anywhere; padding: 2px 3px; }
-.diagram { text-align: center; page-break-inside: avoid; page-break-after: always; }
-.diagram img, .diagram svg { height: 262mm; width: auto; max-width: 100%; }
+.diagram { text-align: center; page-break-before: always; page-break-inside: avoid; page-break-after: always; }
+.diagram img, .diagram svg { height: 250mm; width: auto; max-width: 100%; }
 blockquote { color: #555; border-left: 3px solid #c9a227; margin: 6px 0; padding: 2px 10px; background: #fffbea; }
 """
 
@@ -136,10 +143,10 @@ def to_html(md):
     html = re.sub(r"<table>.*?</table>", mark_wide, html, flags=re.S)
     b64 = diagram_png_b64()
     if b64:
-        img = f'<div class="diagram"><img src="data:image/png;base64,{b64}"></div>'
+        img = f'<div class="diagram"><p><b>Схема алгоритма</b></p><img src="data:image/png;base64,{b64}"></div>'
     else:
         svg = Path(DOCS, "algorithm.svg").read_text(encoding="utf-8")
-        img = f'<div class="diagram">{svg[svg.index("<svg") :]}</div>'
+        img = f'<div class="diagram"><p><b>Схема алгоритма</b></p>{svg[svg.index("<svg") :]}</div>'
     html = re.sub(r'<p><img alt="Алгоритм" src="algorithm.svg" ?/?></p>', img, html)
     return f"<!DOCTYPE html><html lang='ru'><head><meta charset='utf-8'><style>{CSS}</style></head><body>{html}</body></html>"
 

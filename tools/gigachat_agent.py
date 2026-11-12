@@ -327,7 +327,9 @@ def one_run(gc, files, out_dir, mode, followups=None):
                 fh.write(
                     f"**Вызов навыка** `{st['tool']}` (код выхода {st['result']['exit_code']})\n\n```\n{st['result']['stdout']}\n```\n\n"
                 )
-        fh.write(f"**Ответ агента:**\n\n{final}\n\n---\nВремя: всего {total:.1f} с (скрипт {script_time:.2f} с).\n")
+        fh.write(
+            f"**Ответ агента:**\n\n```text\n{final}\n```\n\n---\nВремя: всего {total:.1f} с (скрипт {script_time:.2f} с).\n"
+        )
         for f in log.get("followups", []):
             mark = "✅" if f["passed"] else "❌ не хватает: " + "; ".join(f["missing"])
             fh.write(f"\n**Пользователь:** {f['question']}\n\n**Агент:** {f['answer']}\n\n{mark} ({f['time_s']} с)\n")
