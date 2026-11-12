@@ -275,24 +275,34 @@ def write_excel(res: E.Result, path: str, eng: E.Engine, inputs_desc: list, warn
     wb.save(path)
 
 
+BLOCK_KINDS = (
+    ("no_order", "нет номера заказа — строка не создана"),
+    ("no_group", "группа не определена (нет или незнакомый способ доставки / страна)"),
+    ("no_logist", "в группе нет доступных логистов"),
+)
+
+
 def chat_message(res: E.Result, out_name: str) -> str:
+    """Короткий ответ в чат по шаблону. Чем он короче, тем меньше модель может исказить при пересказе."""
     s = res.stats
     lines = [
         f"Готово: {out_name}",
         f"• Новых строк для Cloud: {s['new_rows']} (с логистом — {s['new_rows_with_logist']}, без логиста — {s['new_rows_without_logist']})",
         f"• Повторных отправок: {s['repeats_cloud'] + s['repeats_batch']} (заказ уже в Cloud — {s['repeats_cloud']}, дубль в пачке — {s['repeats_batch']})",
         f"• Возможных пропусков: {s['possible_misses']}",
-        f"• Требует решения: {s['attention_total']} (блокирующих — {s['attention_blocking']})",
+        f"• Вопросов, требующих решения: {s['attention_total']} (срочных — {s['attention_blocking']})",
     ]
     blocking = [a for a in res.attention if a.priority == E.BLOCK]
     if blocking:
-        lines.append("Сначала посмотрите:")
-        for a in blocking[:5]:
-            ref = " / ".join(x for x in (f"ФУЛ {a.ful_number}" if a.ful_number else "", a.order) if x)
-            lines.append(f"  – {ref}: {a.problem}" if ref else f"  – {a.problem}")
-        if len(blocking) > 5:
-            lines.append(f"  – и ещё {len(blocking) - 5} — на листе «Требует внимания».")
-    lines.append("Обоснование по каждому ФУЛ — на листе «Журнал решений».")
+        lines.append("Срочно:")
+        for kind, title in BLOCK_KINDS:
+            nums = [a.ful_number or a.order or "—" for a in blocking if a.kind == kind]
+            if nums:
+                lines.append(f"  – {title}: {', '.join(nums)}")
+        other = [a for a in blocking if a.kind not in {k for k, _ in BLOCK_KINDS}]
+        if other:
+            lines.append(f"  – другое: {len(other)}")
+    lines.append("Подробности — на листах «Требует внимания» и «Журнал решений».")
     return "\n".join(lines)
 
 
@@ -319,4 +329,6 @@ def write_summary(res: E.Result, path: str, out_xlsx: str, eng: E.Engine, inputs
     }
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(data, fh, ensure_ascii=False, indent=2, default=str)
+    with open(os.path.join(os.path.dirname(path), "chat_message.txt"), "w", encoding="utf-8") as fh:
+        fh.write(data["chat_message"] + "\n")
     return data

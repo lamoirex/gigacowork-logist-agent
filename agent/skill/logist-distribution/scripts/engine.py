@@ -20,7 +20,7 @@ TECH_DUP = "Технический дубль строки"
 POSSIBLE_MISS = "Возможный пропуск"
 NO_ORDER = "Нет номера заказа"
 
-BLOCK = "Блокирует"
+BLOCK = "Срочно"
 CHECK = "Проверить"
 
 
@@ -112,6 +112,7 @@ class Attention:
     supplier: str
     problem: str
     action: str
+    kind: str = ""
 
 
 @dataclass
@@ -143,8 +144,8 @@ class Engine:
     def _val(self, v) -> str:
         return "" if N.is_empty(v, self.markers) else N.to_str(v)
 
-    def _attn(self, priority, ful_number, order, supplier, problem, action):
-        self.attention.append(Attention(priority, ful_number or "", order or "", supplier or "", problem, action))
+    def _attn(self, priority, ful_number, order, supplier, problem, action, kind=""):
+        self.attention.append(Attention(priority, ful_number or "", order or "", supplier or "", problem, action, kind))
 
     def group_title(self, g):
         return self.r["groups"][g]["title"] if g else self.U
@@ -466,6 +467,7 @@ class Engine:
                     f.supplier,
                     f"ФУЛ без однозначного номера заказа: {d.reason}. Строка Cloud не создана.",
                     "Уточнить номер заказа в 1С и внести вручную.",
+                    kind="no_order",
                 )
                 continue
             line_key = (N.norm_text(f.number), f.order)
@@ -550,6 +552,7 @@ class Engine:
                             f.supplier,
                             f"Группа не определена: {d.group_reason}. Логист не назначен.",
                             "Уточнить способ доставки / страну в 1С и назначить логиста вручную.",
+                            kind="no_group",
                         )
                     continue
                 if phase == NEW:
@@ -568,6 +571,7 @@ class Engine:
                         f.supplier,
                         f"В группе «{self.group_title(d.group)}» нет доступных логистов ({d.candidates or 'нет сотрудников'}).",
                         "Назначить логиста вручную; в другую группу агент заказ не передаёт.",
+                        kind="no_logist",
                     )
                 if phase == NEW and f.method == self.r["air_method"] and f.is_china is None:
                     self._attn(
