@@ -85,6 +85,17 @@ class TestCli(unittest.TestCase):
             self.assertEqual(code, 2)
             self.assertIn("нет файлов Excel", stdout)
 
+    def test_no_write_permission_is_explained(self):
+        from unittest import mock
+
+        import report
+
+        denied = PermissionError(13, "Permission denied")
+        with tempfile.TemporaryDirectory() as out, mock.patch.object(report, "write_excel", side_effect=denied):
+            code, stdout = run_main([os.path.join(DATASETS, "ds1_base", "input"), "--out", out])
+        self.assertEqual(code, 2)
+        self.assertIn("нет прав на запись", stdout)
+
     def test_missing_file_role_is_explained(self):
         with tempfile.TemporaryDirectory() as d:
             write_wb(os.path.join(d, "cloud.xlsx"), {"x": [CLOUD_H]})

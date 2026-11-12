@@ -89,12 +89,19 @@ def main(argv=None) -> int:
     eng = E.Engine(rules, countries)
     res = eng.run(tables)
 
-    os.makedirs(args.out, exist_ok=True)
     out_xlsx = os.path.abspath(os.path.join(args.out, RESULT_NAME))
     out_json = os.path.abspath(os.path.join(args.out, SUMMARY_NAME))
     inputs_desc = [(ROLE_TITLES[r], tables[r].describe()) for r in ("ful", "cloud", "staff")]
-    R.write_excel(res, out_xlsx, eng, inputs_desc, warnings)
-    data = R.write_summary(res, out_json, out_xlsx, eng, inputs_desc, warnings)
+    try:
+        os.makedirs(args.out, exist_ok=True)
+        R.write_excel(res, out_xlsx, eng, inputs_desc, warnings)
+        data = R.write_summary(res, out_json, out_xlsx, eng, inputs_desc, warnings)
+    except PermissionError:
+        print(
+            f"ОШИБКА: нет прав на запись в папку результата {os.path.abspath(args.out)}. "
+            "Укажите другую папку (--out) или выдайте права на запись."
+        )
+        return 2
 
     print("=== ОТВЕТ ДЛЯ ЧАТА ===")
     print(data["chat_message"])
