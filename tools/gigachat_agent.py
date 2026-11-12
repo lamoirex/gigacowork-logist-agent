@@ -233,15 +233,24 @@ def agent_turn(gc, messages, files, out_dir, log, max_steps=4):
     return "", script_time
 
 
-def check_followup(answer, must_contain):
-    """Каждый пункт must_contain — строка или список вариантов; без учёта регистра. -> список ненайденных."""
-    text = (answer or "").lower()
-    missing = []
+def check_followup(answer, must_contain, must_not_contain=()):
+    """Проверка ответа на уточняющий вопрос по фактам из журнала решений (без учёта регистра).
+
+    must_contain — каждый пункт обязателен; пункт-список означает «любой из вариантов»
+    (формы слова и синонимы: «уволен» / «уволил…»). must_not_contain — утверждения, которых в
+    журнале нет и которые делают ответ неверным (например, «наименьшая загрузка», если логист выбран
+    по истории). -> список проблем; пустой список — ответ засчитан.
+    """
+    text = (answer or "").lower().replace("ё", "е")
+    problems = []
     for item in must_contain:
         options = item if isinstance(item, list) else [item]
-        if not any(o.lower() in text for o in options):
-            missing.append(" | ".join(options))
-    return missing
+        if not any(o.lower().replace("ё", "е") in text for o in options):
+            problems.append(" | ".join(options))
+    for bad in must_not_contain:
+        if bad.lower().replace("ё", "е") in text:
+            problems.append(f"неверное утверждение: «{bad}»")
+    return problems
 
 
 def run_followups(gc, messages, files, out_dir, log, final, followups):
@@ -251,7 +260,7 @@ def run_followups(gc, messages, files, out_dir, log, final, followups):
         messages.append({"role": "user", "content": q["question"]})
         t0 = time.perf_counter()
         answer, _ = agent_turn(gc, messages, files, out_dir, log)
-        missing = check_followup(answer, q["must_contain"])
+        missing = check_followup(answer, q["must_contain"], q.get("must_not_contain", ()))
         results.append(
             {
                 "question": q["question"],

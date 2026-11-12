@@ -21,6 +21,14 @@ class TestFollowups(unittest.TestCase):
             G.check_followup("Назначен Лебедев А.", must), ["Захаров", "отпуск", "наименее загруж | наименьш"]
         )
         self.assertEqual(G.check_followup(None, ["x"]), ["x"])
+        # формы слова и ё/е
+        self.assertEqual(G.check_followup("Миронова уволилась", [["уволен", "уволил"]]), [])
+        self.assertEqual(G.check_followup("ранее вёл", [["ранее вел"]]), [])
+        # неверная причина проваливает даже ответ с нужными фактами
+        wrong = "Смирнов вёл 2 из 3 заказов поставщика и у него наименьшая загрузка"
+        self.assertEqual(
+            G.check_followup(wrong, [["Смирнов"], ["2 из 3"]], ["наименьш"]), ["неверное утверждение: «наименьш»"]
+        )
 
     def test_get_decision(self):
         with tempfile.TemporaryDirectory() as out:
@@ -43,6 +51,10 @@ class TestFollowups(unittest.TestCase):
                     # эталонные факты вопроса действительно есть в журнале решений
                     journal = " ".join(f"{x['logist']} {x['group']} {x['outcome']} {x['reason']}" for x in found)
                     self.assertEqual(G.check_followup(journal, q["must_contain"]), [], (ds, q["question"]))
+                    # и запрещённых утверждений в самом журнале нет
+                    self.assertEqual(
+                        G.check_followup(journal, [], q.get("must_not_contain", ())), [], (ds, q["question"])
+                    )
 
 
 if __name__ == "__main__":
