@@ -3,7 +3,7 @@ IMAGE ?= logist-agent
 IN ?= testdata/datasets/ds1_base/input
 OUT ?= result
 
-.PHONY: help install test test-fast cov lint format check data runs metrics build pdf \
+.PHONY: help install test test-fast cov lint format check data runs bench metrics build pdf \
         docker-build docker-run docker-test all clean
 
 help:            ## список команд
@@ -38,6 +38,9 @@ data:            ## пересоздать синтетические данны
 
 runs:            ## контрольные прогоны скрипта (3 × каждый набор), падает при регрессии
 	$(PY) tools/run_control.py --strict script --runs 3
+
+bench:           ## нагрузочный тест: время и память на пачках 65 / 500 / 5 000 ФУЛ
+	$(PY) tools/benchmark_scale.py
 
 metrics:         ## пересчитать runs/REPORT.md по всем прогонам
 	$(PY) tools/run_control.py report
