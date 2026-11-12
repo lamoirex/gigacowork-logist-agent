@@ -1,0 +1,37 @@
+# Настройки инструментов разработки.
+# Навык агента — набор скриптов (scripts/), не пакет; зависимости — в requirements*.txt.
+
+# ------------------------------------------------------------------ ruff
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+extend-exclude = ["dist", "runs"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+]
+ignore = [
+    "E501",     # длину строк держит форматтер; длинные русские строки-сообщения не переносим
+    "E731",     # пока разрешено: lambda в коротких вспомогательных выражениях
+    "E741",     # пока разрешено: короткие имена переменных в генераторах
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["distribute", "engine", "normalize", "report", "xlreader", "evaluate", "import_harness_runs"]
+# tests/helpers.py настраивает sys.path, поэтому в тестах он всегда импортируется раньше модулей навыка
+section-order = ["future", "standard-library", "third-party", "test-helpers", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+"test-helpers" = ["helpers"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]                 # helpers настраивает sys.path до импорта модулей навыка
+"agent/skill/*/scripts/distribute.py" = ["E402"]
+"tools/*" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
