@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Установить зависимости
+        run: pip install -r requirements-dev.txt
+      - name: Ruff (линтер и форматирование)
+        run: |
+          ruff check --output-format=github .
+          ruff format --check .
+      - name: Тесты
+        run: python -m unittest discover -s tests -v
+      - name: Контрольные прогоны скрипта (3 × каждый набор) и метрики
+        run: |
+          if [ -f tools/run_control.py ]; then python tools/run_control.py script --runs 3; fi
+      - name: Сборка архивов
+        run: |
+          if [ -f tools/build.py ]; then python tools/build.py; fi
+      - uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.12' && hashFiles('dist/agent.zip') != ''
+        with:
+          name: deliverables
+          path: |
+            dist/agent.zip
+            dist/testdata.zip
