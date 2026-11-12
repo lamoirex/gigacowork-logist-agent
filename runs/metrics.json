@@ -25,6 +25,7 @@
       true,
       true
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -54,6 +55,7 @@
       true,
       true
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -83,6 +85,7 @@
       true,
       true
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -103,15 +106,16 @@
     "reasons_ok_all": true,
     "reproducible": true,
     "hashes": [
-      "af6ee1107dc81517"
+      "8876a9046483fa66"
     ],
-    "time_avg_s": 0.23,
-    "time_max_s": 0.25,
+    "time_avg_s": 0.36,
+    "time_max_s": 0.43,
     "answer_ok": [
       null,
       null,
       null
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -141,6 +145,7 @@
       true,
       true
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -170,6 +175,7 @@
       true,
       false
     ],
+    "followups": [],
     "mismatches": [],
     "passed": false
   },
@@ -199,6 +205,7 @@
       true,
       true
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -219,15 +226,16 @@
     "reasons_ok_all": true,
     "reproducible": true,
     "hashes": [
-      "42c6a3fc15ca2ab6"
+      "48828d18a8727825"
     ],
-    "time_avg_s": 0.23,
-    "time_max_s": 0.25,
+    "time_avg_s": 0.36,
+    "time_max_s": 0.4,
     "answer_ok": [
       null,
       null,
       null
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -257,6 +265,7 @@
       true,
       true
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -286,6 +295,7 @@
       true,
       true
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -315,6 +325,7 @@
       true,
       true
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   },
@@ -335,15 +346,16 @@
     "reasons_ok_all": true,
     "reproducible": true,
     "hashes": [
-      "f3ed0f7ff6b4db86"
+      "f7bdd9d366d81d51"
     ],
-    "time_avg_s": 0.2,
-    "time_max_s": 0.2,
+    "time_avg_s": 0.3,
+    "time_max_s": 0.38,
     "answer_ok": [
       null,
       null,
       null
     ],
+    "followups": [],
     "mismatches": [],
     "passed": true
   }
