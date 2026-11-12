@@ -50,6 +50,16 @@ python3 logist-distribution/scripts/distribute.py ./attachments --out ./result
 
 Коды выхода: `0` — успех, `2` — ошибка входных данных (текст начинается с `ОШИБКА:`).
 
+## Запуск в Docker (без установки Python)
+
+```bash
+docker build -t logist-agent .          # из корня репозитория
+docker run --rm --user "$(id -u):$(id -g)" \
+  -v "/путь/к/выгрузкам:/data/in:ro" -v "$PWD/result:/data/out" logist-agent
+```
+
+Готовый образ публикуется при выпуске версии: `ghcr.io/<владелец>/<репозиторий>:<версия>`.
+
 ## Настройка правил без правки кода
 
 `logist-distribution/references/rules.json`:
