@@ -60,7 +60,8 @@ FUNCTION = {
         "type": "object",
         "properties": {
             "exit_code": {"type": "integer", "description": "0 — успех, 2 — ошибка входных данных"},
-            "stdout": {"type": "string", "description": "вывод скрипта, включая готовый ответ для чата"},
+            "stdout": {"type": "string", "description": "вывод скрипта"},
+            "chat_message": {"type": "string", "description": "готовый ответ для чата (содержимое chat_message.txt)"},
         },
     },
 }
@@ -113,10 +114,11 @@ def run_skill(files, out_dir):
         text=True,
         timeout=120,
     )
-    return {
-        "exit_code": r.returncode,
-        "stdout": r.stdout + (r.stderr[-2000:] if r.stderr else ""),
-    }, time.perf_counter() - t0
+    res = {"exit_code": r.returncode, "stdout": r.stdout + (r.stderr[-2000:] if r.stderr else "")}
+    cm = os.path.join(out_dir, "chat_message.txt")
+    if r.returncode == 0 and os.path.exists(cm):
+        res["chat_message"] = open(cm, encoding="utf-8").read()
+    return res, time.perf_counter() - t0
 
 
 def list_attachments(path):
@@ -186,12 +188,19 @@ def one_run(gc, files, out_dir, mode):
                 {"role": "function", "name": fc.get("name"), "content": json.dumps(res, ensure_ascii=False)}
             )
     total = time.perf_counter() - t0
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    from import_harness_runs import check_answer, template_from_stdout
+
+    stdout = next((st["result"]["stdout"] for st in log["steps"] if "tool" in st), "")
+    exact, leaked = check_answer(final or "", template_from_stdout(stdout))
     log.update(
         {
             "final_answer": final,
             "time_total_s": round(total, 2),
             "time_script_s": round(script_time, 2),
             "time_llm_s": round(total - script_time, 2),
+            "answer_matches_template": exact,
+            "answer_has_service_markers": leaked,
         }
     )
     with open(os.path.join(out_dir, "log.json"), "w", encoding="utf-8") as fh:
@@ -254,12 +263,8 @@ def main():
 
             m = evaluate(a.expected, res_path)
             row.update({k: m[k] for k in ("full_match_rate", "cloud_form_ok", "invented_values", "content_hash")})
-        # ответ модели = шаблон скрипта? (модель ничего не выдумала и не потеряла)
-        stdout = next((s["result"]["stdout"] for s in log["steps"] if "tool" in s), "")
-        tmpl = stdout.split("=== ОТВЕТ ДЛЯ ЧАТА ===")[-1].split("=== КОНЕЦ ОТВЕТА ===")[0].strip() if stdout else ""
-        row["answer_matches_template"] = bool(tmpl) and " ".join(tmpl.split()) in " ".join(
-            (log["final_answer"] or "").split()
-        )
+        # ответ модели = шаблон скрипта, без служебных строк? (модель ничего не исказила)
+        row["answer_ok"] = log["answer_matches_template"] and not log["answer_has_service_markers"]
         summary.append(row)
         print(json.dumps(row, ensure_ascii=False))
     with open(os.path.join(a.runs_dir, ds, f"gigachat_{a.mode}_summary.json"), "w", encoding="utf-8") as fh:
