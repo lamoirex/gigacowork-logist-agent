@@ -3,7 +3,8 @@
 #   test    — окружение разработки: pytest, ruff, контрольные прогоны
 #
 #   docker build -t logist-agent .
-#   docker run --rm -v "$PWD/input:/data/in:ro" -v "$PWD/result:/data/out" logist-agent
+#   docker run --rm --user "$(id -u):$(id -g)" \
+#              -v "$PWD/input:/data/in:ro" -v "$PWD/result:/data/out" logist-agent
 #
 # Базовый образ и индекс пакетов можно подменить на корпоративные зеркала:
 #   docker build --build-arg PYTHON_IMAGE=registry.local/python:3.12-slim \

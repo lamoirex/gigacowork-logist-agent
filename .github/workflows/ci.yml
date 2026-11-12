@@ -93,10 +93,18 @@ jobs:
         run: docker build --target runtime -t logist-agent:ci .
       - name: Запуск на наборе «чужой формат» и сверка с эталоном
         run: |
-          mkdir -p out && chmod 777 out
-          docker run --rm -v "$PWD/testdata/datasets/ds2_format/input:/data/in:ro" -v "$PWD/out:/data/out" logist-agent:ci
+          mkdir -p out
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -v "$PWD/testdata/datasets/ds2_format/input:/data/in:ro" -v "$PWD/out:/data/out" logist-agent:ci
           pip install -r requirements.txt
           python tools/evaluate.py --expected testdata/datasets/ds2_format/expected.json --result out/distribution_result.xlsx
+      - name: Нет прав на запись в папку результата → понятная ошибка, код 2
+        run: |
+          mkdir -p ro && chmod 555 ro
+          set +e
+          docker run --rm -v "$PWD/testdata/datasets/ds1_base/input:/data/in:ro" -v "$PWD/ro:/data/out" logist-agent:ci > ro.log; code=$?
+          cat ro.log
+          test "$code" -eq 2 && grep -q "нет прав на запись" ro.log
       - name: Пустая папка входа → понятная ошибка, код 2
         run: |
           mkdir -p empty
