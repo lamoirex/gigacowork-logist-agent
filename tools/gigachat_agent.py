@@ -68,6 +68,41 @@ FUNCTION = {
 }
 
 
+DECISION_FUNCTION = {
+    "name": "get_decision",
+    "description": (
+        "Возвращает решение агента из журнала решений по номеру заказа (S0001234) или номеру ФУЛ: "
+        "статус обработки, группу, логиста, правило и обоснование. Используй для ответов на вопросы "
+        "«почему заказ отдан этому логисту», «почему строка не создана» и т. п. Работает после распределения."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "query": {"type": "string", "description": "Номер заказа или номер ФУЛ из вопроса пользователя"}
+        },
+        "required": ["query"],
+    },
+    "return_parameters": {
+        "type": "object",
+        "properties": {"decisions": {"type": "array", "items": {"type": "object"}, "description": "найденные решения"}},
+    },
+}
+
+
+def get_decision(query, out_dir):
+    """Поиск решения в summary.json последнего распределения (то же, что лист «Журнал решений»)."""
+    path = Path(out_dir, "summary.json")
+    if not path.exists():
+        return {"error": "Распределение ещё не выполнено: сначала запусти run_logist_distribution."}
+    q = str(query or "").lower()
+    found = [
+        a
+        for a in json.loads(path.read_text(encoding="utf-8"))["assignments"]
+        if (a.get("order") and a["order"].lower() in q) or (a.get("ful") and a["ful"].lower() in q)
+    ]
+    return {"decisions": found[:5]} if found else {"decisions": [], "note": f"По запросу «{query}» решений не найдено."}
+
+
 class GigaChat:
     def __init__(self, credentials, scope, base_url, ctx, model, timeout=60):
         self.credentials, self.scope, self.base, self.ctx = credentials, scope, base_url.rstrip("/"), ctx
@@ -142,7 +177,68 @@ def user_message(files):
     return {"role": "user", "content": f"[Вложения пользователя:]\n{names}"}
 
 
-def one_run(gc, files, out_dir, mode):
+def agent_turn(gc, messages, files, out_dir, log, max_steps=4):
+    """Один ответ агента: модель может вызывать функции, пока не ответит текстом. -> (ответ, время скрипта)."""
+    script_time = 0.0
+    for _ in range(max_steps):
+        resp = gc.chat(messages, functions=[FUNCTION, DECISION_FUNCTION])
+        msg = resp["choices"][0]["message"]
+        log["steps"].append(
+            {"model": msg, "usage": resp.get("usage"), "finish_reason": resp["choices"][0].get("finish_reason")}
+        )
+        fc = msg.get("function_call")
+        if not fc:
+            return msg.get("content", ""), script_time
+        args = fc.get("arguments") or {}
+        if isinstance(args, str):
+            args = json.loads(args or "{}")
+        if fc.get("name") == DECISION_FUNCTION["name"]:
+            res = get_decision(args.get("query"), out_dir)
+        else:
+            res, dt_ = run_skill(args.get("files") or files, out_dir)
+            script_time += dt_
+        log["steps"].append({"tool": fc.get("name"), "args": args, "result": res})
+        assistant = {"role": "assistant", "content": msg.get("content") or "", "function_call": fc}
+        if msg.get("functions_state_id"):
+            assistant["functions_state_id"] = msg["functions_state_id"]
+        messages.append(assistant)
+        messages.append({"role": "function", "name": fc.get("name"), "content": json.dumps(res, ensure_ascii=False)})
+    return "", script_time
+
+
+def check_followup(answer, must_contain):
+    """Каждый пункт must_contain — строка или список вариантов; без учёта регистра. -> список ненайденных."""
+    text = (answer or "").lower()
+    missing = []
+    for item in must_contain:
+        options = item if isinstance(item, list) else [item]
+        if not any(o.lower() in text for o in options):
+            missing.append(" | ".join(options))
+    return missing
+
+
+def run_followups(gc, messages, files, out_dir, log, final, followups):
+    messages.append({"role": "assistant", "content": final or ""})
+    results = []
+    for q in followups:
+        messages.append({"role": "user", "content": q["question"]})
+        t0 = time.perf_counter()
+        answer, _ = agent_turn(gc, messages, files, out_dir, log)
+        missing = check_followup(answer, q["must_contain"])
+        results.append(
+            {
+                "question": q["question"],
+                "answer": answer,
+                "passed": not missing,
+                "missing": missing,
+                "time_s": round(time.perf_counter() - t0, 2),
+            }
+        )
+        messages.append({"role": "assistant", "content": answer or ""})
+    return results
+
+
+def one_run(gc, files, out_dir, mode, followups=None):
     os.makedirs(out_dir, exist_ok=True)
     log = {"mode": mode, "model": gc.model, "files": files, "steps": []}
     t0 = time.perf_counter()
@@ -164,35 +260,16 @@ def one_run(gc, files, out_dir, mode):
         final = resp["choices"][0]["message"].get("content", "")
         log["steps"].append({"model": resp["choices"][0]["message"], "usage": resp.get("usage")})
     else:
-        for _ in range(4):  # не больше 4 шагов модели
-            resp = gc.chat(messages, functions=[FUNCTION])
-            msg = resp["choices"][0]["message"]
-            log["steps"].append(
-                {"model": msg, "usage": resp.get("usage"), "finish_reason": resp["choices"][0].get("finish_reason")}
-            )
-            fc = msg.get("function_call")
-            if not fc:
-                final = msg.get("content", "")
-                break
-            args = fc.get("arguments") or {}
-            if isinstance(args, str):
-                args = json.loads(args or "{}")
-            call_files = args.get("files") or files
-            res, dt_ = run_skill(call_files, out_dir)
-            script_time += dt_
-            log["steps"].append({"tool": fc.get("name"), "args": args, "result": res})
-            assistant = {"role": "assistant", "content": msg.get("content") or "", "function_call": fc}
-            if msg.get("functions_state_id"):
-                assistant["functions_state_id"] = msg["functions_state_id"]
-            messages.append(assistant)
-            messages.append(
-                {"role": "function", "name": fc.get("name"), "content": json.dumps(res, ensure_ascii=False)}
-            )
+        final, script_time = agent_turn(gc, messages, files, out_dir, log)
     total = time.perf_counter() - t0
+    if followups and mode == "agent":
+        log["followups"] = run_followups(gc, messages, files, out_dir, log, final, followups)
+        log["followups_passed"] = sum(f["passed"] for f in log["followups"])
+        log["followups_total"] = len(log["followups"])
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     from import_harness_runs import check_answer, template_from_stdout
 
-    stdout = next((st["result"]["stdout"] for st in log["steps"] if "tool" in st), "")
+    stdout = next((st["result"]["stdout"] for st in log["steps"] if st.get("tool") == FUNCTION["name"]), "")
     exact, leaked = check_answer(final or "", template_from_stdout(stdout))
     log.update(
         {
@@ -210,11 +287,14 @@ def one_run(gc, files, out_dir, mode):
         fh.write(f"# Прогон GigaChat ({gc.model}, режим {mode})\n\n**Пользователь:** (пустое сообщение) + вложения:\n")
         fh.write("\n".join(f"- `{os.path.basename(f)}`" for f in files) + "\n\n")
         for st in log["steps"]:
-            if "tool" in st:
+            if st.get("tool") == FUNCTION["name"]:
                 fh.write(
                     f"**Вызов навыка** `{st['tool']}` (код выхода {st['result']['exit_code']})\n\n```\n{st['result']['stdout']}\n```\n\n"
                 )
         fh.write(f"**Ответ агента:**\n\n{final}\n\n---\nВремя: всего {total:.1f} с (скрипт {script_time:.2f} с).\n")
+        for f in log.get("followups", []):
+            mark = "✅" if f["passed"] else "❌ не хватает: " + "; ".join(f["missing"])
+            fh.write(f"\n**Пользователь:** {f['question']}\n\n**Агент:** {f['answer']}\n\n{mark} ({f['time_s']} с)\n")
     return log
 
 
@@ -230,6 +310,11 @@ def main():
     ap.add_argument("--insecure", action="store_true", help="не проверять TLS-сертификат (только для теста)")
     ap.add_argument("--expected", help="expected.json — посчитать метрики после каждого прогона")
     ap.add_argument("--runs-dir", default=os.path.join(ROOT, "runs"))
+    ap.add_argument(
+        "--followups",
+        help="JSON с уточняющими вопросами после распределения (по умолчанию <набор>/followups.json, если есть)",
+    )
+    ap.add_argument("--no-followups", action="store_true", help="не задавать уточняющие вопросы")
     a = ap.parse_args()
 
     cred = os.environ.get("GIGACHAT_CREDENTIALS")
@@ -247,15 +332,19 @@ def main():
         if os.path.basename(a.inputs.rstrip("/")) == "input"
         else "custom"
     )
+    fu_path = a.followups or os.path.join(os.path.dirname(os.path.abspath(a.inputs)), "followups.json")
+    followups = None
+    if not a.no_followups and os.path.exists(fu_path):
+        followups = json.loads(Path(fu_path).read_text(encoding="utf-8"))["questions"]
     summary = []
     for i in range(1, a.runs + 1):
         out = os.path.join(a.runs_dir, ds, f"gigachat_{a.mode}_{i}")
-        log = one_run(gc, files, out, a.mode)
+        log = one_run(gc, files, out, a.mode, followups)
         row = {
             "run": i,
             "time_total_s": log["time_total_s"],
             "time_llm_s": log["time_llm_s"],
-            "called_skill": any("tool" in s for s in log["steps"]),
+            "called_skill": any(s.get("tool") == FUNCTION["name"] for s in log["steps"]),
         }
         res_path = os.path.join(out, "distribution_result.xlsx")
         if a.expected and os.path.exists(res_path):
@@ -266,6 +355,8 @@ def main():
             row.update({k: m[k] for k in ("full_match_rate", "cloud_form_ok", "invented_values", "content_hash")})
         # ответ модели = шаблон скрипта, без служебных строк? (модель ничего не исказила)
         row["answer_ok"] = log["answer_matches_template"] and not log["answer_has_service_markers"]
+        if "followups" in log:
+            row["followups"] = f"{log['followups_passed']}/{log['followups_total']}"
         summary.append(row)
         print(json.dumps(row, ensure_ascii=False))
     with open(os.path.join(a.runs_dir, ds, f"gigachat_{a.mode}_summary.json"), "w", encoding="utf-8") as fh:

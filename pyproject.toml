@@ -42,7 +42,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["distribute", "engine", "letters", "normalize", "report", "xlreader", "evaluate", "import_harness_runs"]
+known-first-party = ["distribute", "engine", "letters", "normalize", "report", "xlreader", "evaluate", "gigachat_agent", "import_harness_runs"]
 # tests/helpers.py настраивает sys.path, поэтому в тестах он всегда импортируется раньше модулей навыка
 section-order = ["future", "standard-library", "third-party", "test-helpers", "first-party", "local-folder"]
 
