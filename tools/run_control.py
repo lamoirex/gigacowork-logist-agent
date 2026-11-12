@@ -74,6 +74,7 @@ def collect():
             ev["time_total_s"] = log.get("time_total_s")
             ev["answer_matches_template"] = log.get("answer_matches_template")
             ev["answer_has_service_markers"] = log.get("answer_has_service_markers")
+            ev["followups"] = (log["followups_passed"], log["followups_total"]) if "followups_total" in log else None
             ev["run"] = run
             groups[(ds, m.group(1))].append(ev)
     return groups
@@ -104,6 +105,7 @@ def report():
                 else bool(e["answer_matches_template"]) and not e.get("answer_has_service_markers")
                 for e in evs
             ],
+            "followups": [e["followups"] for e in evs if e.get("followups")],
             "mismatches": [x for e in evs for x in e["mismatches"] + e["cell_mismatches"]],
         }
         agg["passed"] = (
@@ -135,19 +137,22 @@ def report():
         "`gigachat_agent` — tools/gigachat_agent.py.",
         "",
         "| Набор | Исполнитель | Прогонов | Совпадение ФУЛ целиком (мин.) | Статус | Группа | Логист | Комментарий | "
-        "Ячейки новых строк | Форма Cloud | Выдумано | Воспроизводимо | Ответ в чат = шаблон | Время ср./макс., с | Итог |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "Ячейки новых строк | Форма Cloud | Выдумано | Воспроизводимо | Ответ в чат = шаблон | Вопросы по решениям | "
+        "Время ср./макс., с | Итог |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for a in rows:
         fa = a["field_accuracy_min"]
         t = f"{a['time_avg_s']} / {a['time_max_s']}" if a["time_avg_s"] is not None else "—"
         ao = [x for x in a["answer_ok"] if x is not None]
         ans = f"{sum(ao)}/{len(ao)}" if ao else "— (без модели)"
+        fu = a["followups"]
+        fu_txt = f"{sum(x[0] for x in fu)}/{sum(x[1] for x in fu)}" if fu else "—"
         lines.append(
             f"| {a['dataset']} | {a['runner']} | {a['runs']} | {pct(a['full_match_rate_min'])} | "
             f"{pct(fa['outcome'])} | {pct(fa['group'])} | {pct(fa['logist'])} | {pct(fa['comment'])} | "
             f"{pct(a['new_rows_cell_acc_min'])} | {'да' if a['cloud_form_ok_all'] else 'НЕТ'} | "
-            f"{a['invented_values_total']} | {'да' if a['reproducible'] else 'НЕТ'} | {ans} | {t} | "
+            f"{a['invented_values_total']} | {'да' if a['reproducible'] else 'НЕТ'} | {ans} | {fu_txt} | {t} | "
             f"{'✅' if a['passed'] else '❌'} |"
         )
     bad = [a for a in rows if a["mismatches"]]
