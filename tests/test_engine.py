@@ -89,6 +89,18 @@ class TestEngine(unittest.TestCase):
         self.assertEqual(rows["S0000012"]["country"], "не определено")
         self.assertNotEqual(rows["S0000012"]["logist"], "не определено")
 
+    def test_supplier_spelling_does_not_depend_on_row_order(self):
+        rows = [
+            cloud_row("S0000001", "ACME Co., Ltd", "Лебедев А."),
+            cloud_row("S0000002", "Acme Co. Ltd", "Лебедев А."),
+            cloud_row("S0000003", "Acme Co. Ltd", "Лебедев А."),
+        ]
+        spellings = set()
+        for cloud in (rows, rows[::-1]):
+            _, res = self.run_case(cloud, [ful_row("1", "S0000010", "ACME")])
+            spellings.add(res.new_rows[0]["supplier"])
+        self.assertEqual(spellings, {"Acme Co. Ltd"})  # самое частое написание
+
     def test_ambiguous_short_name(self):
         staff = [*STAFF, ["Орлова Мария Ивановна", "Работает", "Специалист по авиаперевозкам", "9"]]
         cloud = [cloud_row("S0000001", "A", "Орлова М."), cloud_row("S0000002", "A", "Орлова М.")]

@@ -455,10 +455,15 @@ class Engine:
                 cloud_by_order[cr.order] = cr
         cloud_dates = [cr.ul_date for cr in cloud if cr.ul_date]
         last_cloud = max(cloud_dates) if cloud_dates else None
-        cloud_supplier_names = {}
+        # Написание поставщика для новой строки: самое частое в Cloud, при равенстве — по алфавиту
+        # (не «первое встретившееся», чтобы результат не зависел от порядка строк реестра)
+        spellings = defaultdict(Counter)
         for cr in cloud:
-            if cr.supplier_key and cr.supplier_key not in cloud_supplier_names:
-                cloud_supplier_names[cr.supplier_key] = cr.supplier
+            if cr.supplier_key:
+                spellings[cr.supplier_key][cr.supplier] += 1
+        cloud_supplier_names = {
+            key: min(counter.items(), key=lambda kv: (-kv[1], kv[0]))[0] for key, counter in spellings.items()
+        }
         self.cloud_supplier_names = cloud_supplier_names
 
         far = N.parse_datetime("31.12.2999")
