@@ -74,7 +74,7 @@ docs/
 testdata/
   generate.py                        генератор синтетики; эталон задан вручную
   datasets/{ds1_base,ds2_format,ds3_edge}/   input/ (3 файла) + expected.json/.xlsx
-tests/                               unittest: нормализация, чтение, правила, ответ в чат, сквозные (21 тест)
+tests/                               30 тестов: нормализация, чтение, правила, CLI, ответ в чат, сквозные
 tools/
   evaluate.py                        метрики относительно эталона
   run_control.py                     контрольные прогоны и сводный отчёт
@@ -82,23 +82,52 @@ tools/
   import_harness_runs.py             импорт агентных прогонов из внешнего harness
   build.py / build_report.py         сборка архивов и PDF
 runs/                                результаты всех контрольных прогонов + REPORT.md, metrics.json
-Makefile · requirements*.txt · CHANGELOG.md · .github/workflows/ci.yml
+Dockerfile                           образы runtime (навык) и test (ruff + pytest)
+.github/workflows/                   ci.yml (проверки на каждый push), release.yml (релиз по тегу)
+pyproject.toml · Makefile · requirements*.txt · .pre-commit-config.yaml · CHANGELOG.md
 ```
 
 ## Команды
 
-Короткие варианты — через `make` (`make help`): `make test`, `make runs`, `make build`, `make pdf`.
-CI (GitHub Actions) на каждый push гоняет тесты на Python 3.9 и 3.12, контрольные прогоны и сборку архивов.
+Короткие варианты — через `make` (`make help`): `make check` повторяет проверки CI,
+`make test`, `make lint`, `make runs`, `make build`, `make pdf`, `make docker-build`, `make docker-run`.
 
 | Что | Команда |
 |---|---|
-| Тесты | `python3 -m unittest discover -s tests -v` |
+| Тесты | `python3 -m pytest` (или без pytest: `python3 -m unittest discover -s tests`) |
+| Быстрые тесты без сквозных | `python3 -m pytest -m "not e2e"` |
+| Покрытие ядра (порог 85%) | `python3 -m pytest --cov --cov-fail-under=85` |
+| Линтер и форматирование | `ruff check . && ruff format --check .` |
 | Пересоздать синтетику | `python3 testdata/generate.py` |
 | Контрольные прогоны скрипта | `python3 tools/run_control.py script --runs 3` |
 | Прогоны на GigaChat | `GIGACHAT_CREDENTIALS=… python3 tools/gigachat_agent.py testdata/datasets/ds1_base/input --runs 3 --expected testdata/datasets/ds1_base/expected.json --ca-bundle russian_trusted_root_ca.cer` |
 | Сводка метрик | `python3 tools/run_control.py report` |
 | Архивы для сдачи | `python3 tools/build.py` → `dist/agent.zip`, `dist/testdata.zip` |
 | PDF-отчёт | `python3 tools/build_report.py` → `dist/report.pdf` (нужен Chrome/Chromium, graphviz, `markdown`) |
+
+## Docker
+
+```bash
+docker build -t logist-agent .                       # образ навыка (stage runtime)
+docker run --rm --user "$(id -u):$(id -g)" \
+  -v "$PWD/testdata/datasets/ds1_base/input:/data/in:ro" \
+  -v "$PWD/result:/data/out" logist-agent              # результат — в ./result
+docker build --target test -t logist-agent:test . && docker run --rm logist-agent:test   # ruff + pytest
+```
+
+Навык в контейнере запускается не от root. Для корпоративной сети базовый образ и индекс пакетов
+подменяются без правки Dockerfile:
+`--build-arg PYTHON_IMAGE=<зеркало>/python:3.12-slim --build-arg PIP_INDEX_URL=<nexus>/simple`.
+
+## CI/CD
+
+| Workflow | Когда | Что делает |
+|---|---|---|
+| `ci.yml` | push в `main`, pull request | ruff → pytest на Python 3.9 / 3.11 / 3.12 / 3.13 с покрытием ≥ 85% → контрольные прогоны с порогами из БТ (`run_control.py --strict`, метрики — в сводке запуска) → сборка образа, запуск на наборе «чужой формат» со сверкой с эталоном, проверка ошибок пустой папки и прав → `agent.zip` и `testdata.zip` в артефактах |
+| `release.yml` | тег `vX.Y.Z` | проверка, что тег = версия в `pyproject.toml` = версия навыка → тесты и контрольные прогоны → GitHub Release с `agent.zip`, `testdata.zip`, `report.pdf` и заметками из CHANGELOG → Docker-образ в `ghcr.io` |
+
+Выпуск версии: `git tag v1.1.1 && git push origin v1.1.1`.
+Зависимости обновляет Dependabot, перед коммитом ruff запускает pre-commit (`make install`).
 
 ## Ключевые решения
 
