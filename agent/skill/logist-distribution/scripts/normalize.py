@@ -91,3 +91,41 @@ def parse_datetime(value):
 def fmt_date(value, fmt="%d.%m.%Y") -> str:
     d = parse_datetime(value)
     return d.strftime(fmt) if d else ""
+
+
+# ---------------------------------------------------------------- заказ
+
+
+def parse_order(comment, pattern: str, prefix: str = "S"):
+    """Комментарий ФУЛ -> (номер или None, список всех найденных разных номеров)."""
+    s = to_str(comment)
+    rx = re.compile(r"(?<![0-9A-Za-zА-Яа-яЁё])" + pattern + r"(?!\d)", re.IGNORECASE)
+    found = []
+    for m in rx.finditer(s):
+        num = prefix + m.group(1)
+        if num not in found:
+            found.append(num)
+    if len(found) == 1:
+        return found[0], found
+    return None, found
+
+
+def norm_order(value, pattern: str, prefix: str = "S"):
+    """Номер заказа в реестре Cloud -> канонический вид или None."""
+    num, _ = parse_order(value, pattern, prefix)
+    return num
+
+
+# ---------------------------------------------------------------- поставщик
+
+_PUNCT = re.compile(r"[^\w\s]", re.UNICODE)
+
+
+def supplier_key(name, legal_forms) -> str:
+    """Ключ сравнения поставщиков: без регистра, знаков, лишних пробелов и правовых форм."""
+    s = norm_text(name)
+    s = _PUNCT.sub(" ", s).replace("_", " ")
+    tokens = [t for t in s.split() if t]
+    lf = set(legal_forms)
+    core = [t for t in tokens if t not in lf]
+    return " ".join(core or tokens)
