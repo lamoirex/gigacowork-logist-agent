@@ -339,12 +339,14 @@ class Engine:
         members = [e for e in emps if e.group == group and not e.excluded]
         hist = Counter()
         last = {}
-        total = 0
+        total = unmatched = 0
         if f.supplier_key:
             for cr in cloud:
                 if cr.supplier_key != f.supplier_key:
                     continue
                 total += 1
+                if cr.match in ("ambiguous", "unknown"):
+                    unmatched += 1
                 if cr.employee and cr.employee in members:
                     hist[cr.employee.fio] += 1
                     d = cr.ul_date or N.parse_datetime("01.01.1900")
@@ -370,6 +372,12 @@ class Engine:
             if pref:
                 why = f"предпочтительный по истории {self.short(pref)} ({hist[pref.fio]} из {total} заказов) недоступен: {pref.unavailable_reason}"
                 rule = "Наименее загруженный: предпочтительный недоступен"
+            elif unmatched:
+                why = (
+                    f"у поставщика {total} заказ(ов) в Cloud, но их логисты не сопоставлены однозначно "
+                    f"с сотрудниками группы «{self.group_title(group)}» — история не учитывается"
+                )
+                rule = "Наименее загруженный: нет истории в группе"
             elif total:
                 why = f"заказы поставщика в Cloud вели не сотрудники группы «{self.group_title(group)}»"
                 rule = "Наименее загруженный: нет истории в группе"
