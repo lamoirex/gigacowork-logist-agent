@@ -28,6 +28,44 @@ class TestReaderRobustness(unittest.TestCase):
             t, _ = detect_tables([p], RULES["headers"])
             self.assertEqual(set(t), {"ful", "cloud", "staff"})
 
+    def test_roles_are_assigned_jointly(self):
+        # Реестр Cloud с такими заголовками формально подходит и под выгрузку ФУЛ
+        # («Номер заказа» ⊃ «Номер», «Дата УЛ», «Вид доставки»…), а строк в нём больше.
+        # Жадный выбор отдавал этот лист ФУЛ, и реестр Cloud «не находился».
+        cloud_h = [
+            "Номер заказа",
+            "Supplier",
+            "BRAND",
+            "логист",
+            "статус заказа",
+            "Confirm date",
+            "CUT-OFF",
+            "дата ул",
+            "Страна отправления",
+            "Вид доставки",
+            "Документы получены (дата)",
+            "комментарий",
+        ]
+        ful_h = [
+            "Дата документа",
+            "Номер УЛ",
+            "ПРИМЕЧАНИЕ",
+            "delivery method",
+            "бе",
+            "Ответственный",
+            "контрагент",
+            "COUNTRY",
+            "Cutoff",
+            "Статус",
+        ]
+        with tempfile.TemporaryDirectory() as d:
+            write_wb(os.path.join(d, "a.xlsx"), {"x": [cloud_h] + [[f"S000000{i}", *["v"] * 11] for i in range(9)]})
+            write_wb(os.path.join(d, "b.xlsx"), {"y": [ful_h, ["10.11.2026", "1", "Номер: S0000010", "air"]]})
+            write_wb(os.path.join(d, "c.xlsx"), {"z": STAFF})
+            t, _ = detect_tables([os.path.join(d, f) for f in ("a.xlsx", "b.xlsx", "c.xlsx")], RULES["headers"])
+            self.assertTrue(t["cloud"].file.endswith("a.xlsx"))
+            self.assertTrue(t["ful"].file.endswith("b.xlsx"))
+
     def test_previous_result_is_ignored(self):
         import openpyxl
 

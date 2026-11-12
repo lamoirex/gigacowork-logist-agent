@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import itertools
 import os
 from dataclasses import dataclass, field
 
@@ -190,14 +191,44 @@ def detect_tables(paths, headers_spec):
         for role, score, r_idx, columns, titles, data_rows in _candidates(sh, headers_spec):
             cands.append((role, score, data_rows, s_idx, r_idx, columns, titles))
 
-    warnings, tables, used_sheets = [], {}, set()
-    # Сначала самые уверенные совпадения: высокий score, затем больше строк данных.
-    cands.sort(key=lambda c: (-c[1], -c[2], c[3], c[4]))
-    for role, _score, _data_rows, s_idx, r_idx, columns, titles in cands:
-        if role in tables or s_idx in used_sheets:
+    # Роли распределяются по листам совместно, а не жадно: лист реестра Cloud может формально
+    # подойти и под выгрузку ФУЛ (общие заголовки «Номер…», «Дата УЛ», «Способ доставки»).
+    # Берём комбинацию «роль → лист», где найдено больше всего ролей, затем — с лучшими
+    # совпадениями заголовков и большим числом строк; при равенстве — первый по порядку файлов.
+    best = {}  # (role, sheet) -> лучший вариант строки заголовков на этом листе
+    for c in cands:
+        role, score, data_rows, s_idx, r_idx = c[:5]
+        key = (role, s_idx)
+        if key not in best or (score, data_rows, -r_idx) > (best[key][1], best[key][2], -best[key][4]):
+            best[key] = c
+    options = {role: [c for (r, _), c in sorted(best.items()) if r == role] + [None] for role in ROLES}
+
+    def rank(combo):
+        chosen = [c for c in combo if c]
+        return (
+            len(chosen),
+            sum(c[1] for c in chosen),
+            sum(c[2] for c in chosen),
+            -sum(c[3] for c in chosen),
+            -sum(c[4] for c in chosen),
+        )
+
+    chosen = max(
+        (
+            combo
+            for combo in itertools.product(*(options[r] for r in ROLES))
+            if len({c[3] for c in combo if c}) == sum(1 for c in combo if c)
+        ),
+        key=rank,
+    )
+
+    warnings, tables, used_sheets = [], {}, {c[3] for c in chosen if c}
+    for role, c in zip(ROLES, chosen):
+        if c is None:
             continue
+        _role, _score, _data_rows, s_idx, r_idx, columns, titles = c
         sh = sheets[s_idx]
-        others = [c for c in cands if c[0] == role and c[3] != s_idx and c[3] not in used_sheets]
+        others = [o for o in options[role] if o and o[3] not in used_sheets]
         if others:
             o = sheets[others[0][3]]
             warnings.append(
@@ -210,11 +241,10 @@ def detect_tables(paths, headers_spec):
             if not row or all(to_str(v) == "" for v in row):
                 continue
             rec = {"_row": rr_idx}
-            for fld, c in columns.items():
-                rec[fld] = row[c] if c < len(row) else None
+            for fld, col in columns.items():
+                rec[fld] = row[col] if col < len(row) else None
             t.records.append(rec)
         tables[role] = t
-        used_sheets.add(s_idx)
 
     missing_roles = [r for r in ROLES if r not in tables]
     if missing_roles:
