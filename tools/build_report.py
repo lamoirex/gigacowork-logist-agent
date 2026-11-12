@@ -5,7 +5,7 @@
 
 Вставки между <!-- BEGIN:x --> и <!-- END:x -->: вопросы (docs/questions.md), покрытие ловушек
 (testdata/README.md), метрики (runs/REPORT.md), лог прогона и фрагмент журнала (runs/ds1_base/claude_1),
-мотивация (docs/motivation.md). PDF печатается через headless Chrome/Chromium.
+мотивация (docs/motivation.local.md — личный файл, в git не попадает; если его нет, раздел пуст). PDF печатается через headless Chrome/Chromium.
 """
 
 import argparse
@@ -60,6 +60,12 @@ def transcript():
     return t.replace("---\n", "\n")
 
 
+def motivation():
+    """Ответы на мотивационные вопросы — только в PDF, в репозитории их нет."""
+    path = Path(ROOT, "docs", "motivation.local.md")
+    return path.read_text(encoding="utf-8").strip() if path.exists() else ""
+
+
 def blocks():
     runs = read("runs", "REPORT.md").split("\n", 2)[2].strip()
     return {
@@ -68,7 +74,7 @@ def blocks():
         "runs": runs,
         "transcript": transcript(),
         "journal": journal_excerpt(),
-        "motivation": read("docs", "motivation.md").strip(),
+        "motivation": motivation(),
     }
 
 

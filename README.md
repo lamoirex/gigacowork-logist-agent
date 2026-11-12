@@ -70,7 +70,6 @@ docs/
   questions.md                       16 открытых вопросов заказчику: кому, зачем, допущение
   algorithm.dot / .svg               схема алгоритма
   report.md                          отчёт (из него собирается PDF)
-  motivation.md                      ответы на мотивационные вопросы
 testdata/
   generate.py                        генератор синтетики; эталон задан вручную
   datasets/{ds1_base,ds2_format,ds3_edge}/   input/ (3 файла) + expected.json/.xlsx

@@ -16,3 +16,6 @@ htmlcov/
 # IDE
 .idea/
 .vscode/
+
+# личные ответы для PDF-отчёта (в репозиторий не попадают)
+docs/motivation.local.md
