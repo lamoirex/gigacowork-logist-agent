@@ -1,0 +1,403 @@
+{
+  "_comment": "Правила распределения. Значения, помеченные [Д-N], — допущения до ответа заказчика (см. docs/questions.md). Меняются здесь без правки кода.",
+  "version": "1.0.0",
+  "undefined": "не определено",
+  "repeat_comment_template": "Повторная отправка ФУЛа, {date}",
+  "comment_separator": "; ",
+  "date_format": "%d.%m.%Y",
+  "new_row_status": "в работе",
+  "load_status_values": [
+    "в работе"
+  ],
+  "count_batch_assignments_in_load": true,
+  "possible_miss_compare_by_day": true,
+  "supplier_similarity_threshold": 0.88,
+  "order_number_regex": "[SС]\\s?(\\d{7})",
+  "order_number_prefix": "S",
+  "groups": {
+    "AIR": {
+      "title": "Авиаперевозки",
+      "position": "специалист по авиаперевозкам"
+    },
+    "VED": {
+      "title": "ВЭД",
+      "position": "специалист по работе с ВЭД документацией"
+    },
+    "MULTI": {
+      "title": "Мультимодальные перевозки",
+      "position": "специалист по мультимодальным перевозкам"
+    }
+  },
+  "position_group_keywords": {
+    "AIR": [
+      "авиа",
+      "air"
+    ],
+    "VED": [
+      "вэд",
+      "внешнеэконом"
+    ],
+    "MULTI": [
+      "мультимодал",
+      "multimodal"
+    ]
+  },
+  "position_excluded_keywords": [
+    "ассистент",
+    "помощник",
+    "assistant",
+    "руковод",
+    "начальник",
+    "заместител",
+    "head",
+    "lead",
+    "директор",
+    "стажер",
+    "стажёр"
+  ],
+  "available_states": [
+    "работает"
+  ],
+  "delivery_methods": {
+    "air": [
+      "air",
+      "авиа",
+      "avia",
+      "авиадоставка",
+      "by air"
+    ],
+    "sea": [
+      "sea",
+      "море",
+      "морем",
+      "by sea",
+      "ocean"
+    ],
+    "truck": [
+      "truck",
+      "авто",
+      "автомобиль",
+      "автодоставка"
+    ],
+    "direct truck": [
+      "direct truck",
+      "directtruck",
+      "direct-truck"
+    ],
+    "railway": [
+      "railway",
+      "rail",
+      "ж/д",
+      "жд",
+      "железная дорога"
+    ]
+  },
+  "air_method": "air",
+  "supplier_legal_forms": [
+    "ооо",
+    "оао",
+    "зао",
+    "пао",
+    "ао",
+    "ип",
+    "тоо",
+    "co",
+    "company",
+    "ltd",
+    "limited",
+    "llc",
+    "inc",
+    "corp",
+    "corporation",
+    "gmbh",
+    "srl",
+    "spa",
+    "bv",
+    "pte",
+    "plc"
+  ],
+  "headers": {
+    "ful": {
+      "date": {
+        "required": true,
+        "synonyms": [
+          "Дата",
+          "Дата ФУЛ",
+          "Дата и время",
+          "Дата УЛ",
+          "Дата документа"
+        ]
+      },
+      "cutoff": {
+        "required": false,
+        "synonyms": [
+          "Cut-off date",
+          "Cut-off",
+          "Cutoff",
+          "Cut off date",
+          "Cut off",
+          "Дата cut-off",
+          "Cutoff date"
+        ]
+      },
+      "number": {
+        "required": true,
+        "synonyms": [
+          "Номер",
+          "Номер ФУЛ",
+          "Номер УЛ",
+          "Номер упаковочного листа",
+          "№",
+          "№ ФУЛ"
+        ]
+      },
+      "status": {
+        "required": false,
+        "synonyms": [
+          "Статус",
+          "Статус ФУЛ",
+          "Состояние"
+        ]
+      },
+      "comment": {
+        "required": true,
+        "synonyms": [
+          "Комментарий",
+          "Коммент",
+          "Примечание"
+        ]
+      },
+      "method": {
+        "required": true,
+        "synonyms": [
+          "Способ доставки",
+          "Тип доставки",
+          "Вид доставки",
+          "Delivery method",
+          "Тип перевозки",
+          "Способ"
+        ]
+      },
+      "brand": {
+        "required": false,
+        "synonyms": [
+          "Бизнес единица",
+          "Бизнес-единица",
+          "Бренд",
+          "БЕ",
+          "Brand"
+        ]
+      },
+      "logist": {
+        "required": false,
+        "synonyms": [
+          "Логист",
+          "Ответственный"
+        ]
+      },
+      "supplier": {
+        "required": true,
+        "synonyms": [
+          "Контрагент",
+          "Поставщик",
+          "Supplier",
+          "Vendor"
+        ]
+      },
+      "country": {
+        "required": true,
+        "synonyms": [
+          "Страна",
+          "Страна отправления",
+          "Страна отгрузки",
+          "Country"
+        ]
+      }
+    },
+    "cloud": {
+      "order": {
+        "required": true,
+        "synonyms": [
+          "Заказ",
+          "Номер заказа",
+          "№ заказа",
+          "Order"
+        ]
+      },
+      "supplier": {
+        "required": true,
+        "synonyms": [
+          "Поставщик",
+          "Контрагент",
+          "Supplier"
+        ]
+      },
+      "brand": {
+        "required": true,
+        "synonyms": [
+          "Бренд",
+          "Бизнес единица",
+          "Brand"
+        ]
+      },
+      "logist": {
+        "required": true,
+        "synonyms": [
+          "Логист",
+          "Ответственный логист"
+        ]
+      },
+      "status": {
+        "required": true,
+        "synonyms": [
+          "статус",
+          "Статус",
+          "Статус заказа"
+        ]
+      },
+      "confirm_date": {
+        "required": true,
+        "synonyms": [
+          "дата подтверждения",
+          "Дата подтверждения",
+          "Confirm date"
+        ]
+      },
+      "cutoff": {
+        "required": true,
+        "synonyms": [
+          "cut-off",
+          "Cut-off",
+          "Cut-off date",
+          "Cutoff",
+          "Cut off"
+        ]
+      },
+      "ul_date": {
+        "required": true,
+        "synonyms": [
+          "Дата получения УЛ",
+          "Дата получения ФУЛ",
+          "Дата УЛ",
+          "Получен УЛ"
+        ]
+      },
+      "country": {
+        "required": true,
+        "synonyms": [
+          "Страна отправления",
+          "Страна",
+          "Country"
+        ]
+      },
+      "method": {
+        "required": true,
+        "synonyms": [
+          "Способ доставки",
+          "Тип доставки",
+          "Вид доставки"
+        ]
+      },
+      "docs_date": {
+        "required": true,
+        "synonyms": [
+          "Документы получены",
+          "Документы получены (дата)",
+          "Дата получения документов",
+          "Получены документы"
+        ]
+      },
+      "comment": {
+        "required": true,
+        "synonyms": [
+          "Комментарий",
+          "Комментарии",
+          "Примечание"
+        ]
+      }
+    },
+    "staff": {
+      "name": {
+        "required": true,
+        "synonyms": [
+          "Наименование",
+          "ФИО",
+          "Сотрудник",
+          "Ф.И.О."
+        ]
+      },
+      "state": {
+        "required": true,
+        "synonyms": [
+          "Текущее состояние",
+          "Состояние",
+          "Статус",
+          "Статус сотрудника"
+        ]
+      },
+      "position": {
+        "required": true,
+        "synonyms": [
+          "Должность"
+        ]
+      },
+      "code": {
+        "required": false,
+        "synonyms": [
+          "Код",
+          "Таб. №",
+          "Табельный номер",
+          "Таб №",
+          "Код (Таб. №)",
+          "Таб.№"
+        ]
+      }
+    }
+  },
+  "cloud_columns_order": [
+    "order",
+    "supplier",
+    "brand",
+    "logist",
+    "status",
+    "confirm_date",
+    "cutoff",
+    "ul_date",
+    "country",
+    "method",
+    "docs_date",
+    "comment"
+  ],
+  "cloud_default_titles": {
+    "order": "Заказ",
+    "supplier": "Поставщик",
+    "brand": "Бренд",
+    "logist": "Логист",
+    "status": "статус",
+    "confirm_date": "дата подтверждения",
+    "cutoff": "cut-off",
+    "ul_date": "Дата получения УЛ",
+    "country": "Страна отправления",
+    "method": "Способ доставки",
+    "docs_date": "Документы получены",
+    "comment": "Комментарий"
+  },
+  "empty_markers": [
+    "",
+    "-",
+    "—",
+    "–",
+    "н/д",
+    "нд",
+    "нет",
+    "n/a",
+    "na",
+    "none",
+    "null",
+    "nan",
+    "не указано",
+    "не указана",
+    "?",
+    "не определено"
+  ]
+}
