@@ -54,6 +54,20 @@ class TestCli(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertTrue(stdout.startswith("ОШИБКА"))
 
+    def test_failed_save_leaves_no_broken_result(self):
+        from unittest import mock
+
+        import openpyxl
+
+        def broken_save(_wb, filename):
+            Path(filename).write_bytes(b"PK\x03\x04 half-written")  # запись оборвалась на середине
+            raise OSError("диск переполнен")
+
+        with tempfile.TemporaryDirectory() as out:
+            with mock.patch.object(openpyxl.Workbook, "save", broken_save), self.assertRaises(OSError):
+                run_main([os.path.join(DATASETS, "ds1_base", "input"), "--out", out])
+            self.assertEqual(sorted(os.listdir(out)), [])
+
     def test_missing_file_role_is_explained(self):
         with tempfile.TemporaryDirectory() as d:
             write_wb(os.path.join(d, "cloud.xlsx"), {"x": [CLOUD_H]})

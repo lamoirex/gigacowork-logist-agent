@@ -272,7 +272,14 @@ def write_excel(res: E.Result, path: str, eng: E.Engine, inputs_desc: list, warn
         )
     _style_sheet(ws, [34, 10, 40, 24, 12, 10, 40, 18, 12, 12], U)
 
-    wb.save(path)
+    # Атомарная запись: при сбое не остаётся битого файла результата
+    tmp = path + ".part"
+    try:
+        wb.save(tmp)
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
 
 
 BLOCK_KINDS = (
