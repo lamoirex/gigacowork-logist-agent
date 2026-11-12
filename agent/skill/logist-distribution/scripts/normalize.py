@@ -158,3 +158,88 @@ def norm_country(value, countries: dict, markers):
     if s in china:
         return raw, True
     return raw, False
+
+
+# ---------------------------------------------------------------- ФИО и короткие имена
+
+
+def split_fio(fio):
+    """'Иванова Елена Петровна' -> ('иванова', 'е', 'п') — фамилия и инициалы для сравнения."""
+    parts = [p for p in re.split(r"[\s.]+", norm_text(fio)) if p]
+    if not parts:
+        return "", "", ""
+    surname = parts[0]
+    first = parts[1][0] if len(parts) > 1 else ""
+    patr = parts[2][0] if len(parts) > 2 else ""
+    return surname, first, patr
+
+
+def parse_short_name(value):
+    """Короткое имя из Cloud -> (фамилия, [инициалы]).
+
+    Поддерживает: 'Иванова Е.', 'Иванова Е.П.', 'Иванова Е. П.', 'Е. Иванова',
+    'Е.П. Иванова', 'Иванова', 'Иванова Елена', 'иванова елена петровна'.
+    """
+    s = norm_text(value)
+    if not s:
+        return "", []
+    # разделяем «Е.П.» на «Е. П.»
+    s = re.sub(r"(\w)\.(?=\w)", r"\1. ", s)
+    tokens = [t for t in s.split(" ") if t]
+    words, initials = [], []
+    for t in tokens:
+        bare = t.strip(".,")
+        if not bare:
+            continue
+        if t.endswith(".") and len(bare) <= 2 or len(bare) == 1:
+            initials.append(bare[0])
+        else:
+            words.append(bare)
+    if not words:
+        return "", []
+    surname = words[0]
+    # Полные имя/отчество после фамилии превращаем в инициалы
+    initials = [w[0] for w in words[1:]] + initials if len(words) > 1 else initials
+    return surname, initials[:2]
+
+
+def name_matches(short, fio) -> bool:
+    surname, initials = parse_short_name(short)
+    fs, ff, fp = split_fio(fio)
+    if not surname or surname != fs:
+        return False
+    full = [ff, fp]
+    for i, ini in enumerate(initials):
+        if i >= len(full) or not full[i] or full[i] != ini:
+            return False
+    return True
+
+
+def short_style(value) -> str:
+    """Стиль записи логиста в Cloud: 'surname_i', 'surname_io', 'surname', 'full', 'other'."""
+    s = to_str(value)
+    if re.fullmatch(r"[^\s.]+\s+[^\s.]\.", s):
+        return "surname_i"
+    if re.fullmatch(r"[^\s.]+\s+[^\s.]\.\s?[^\s.]\.", s):
+        return "surname_io"
+    if re.fullmatch(r"[^\s.]+", s):
+        return "surname"
+    if re.fullmatch(r"[^\s.]+\s+[^\s.]{2,}\s+[^\s.]{2,}", s):
+        return "full"
+    return "other"
+
+
+def format_short(fio, style: str) -> str:
+    parts = [p for p in to_str(fio).split(" ") if p]
+    if not parts:
+        return ""
+    surname = parts[0]
+    first = parts[1][0].upper() + "." if len(parts) > 1 else ""
+    patr = parts[2][0].upper() + "." if len(parts) > 2 else ""
+    if style == "surname_io":
+        return f"{surname} {first}{patr}".strip()
+    if style == "surname":
+        return surname
+    if style == "full":
+        return to_str(fio)
+    return f"{surname} {first}".strip()
