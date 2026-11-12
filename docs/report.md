@@ -1,10 +1,14 @@
 # Агент распределения ФУЛ между логистами — отчёт по тестовому заданию
 
-**Проект:** AI-агент на GigaCowork, который распределяет новые заказы поставщиков между логистами
+**Проект:** AI-агент для GigaCowork, который распределяет новые заказы поставщиков между логистами
 и готовит строки реестра Cloud строго по его форме.
-**Автор:** Бурмистров Илья Олегович · ilolburmistrov@edu.hse.ru · Telegram [@voidprotector](https://t.me/voidprotector)
+
+**Автор:** Бурмистров Илья Олегович
+
+**Контакты:** ilolburmistrov@edu.hse.ru · Telegram [@voidprotector](https://t.me/voidprotector)
+
 **Репозиторий:** [github.com/lamoirex/gigacowork-logist-agent](https://github.com/lamoirex/gigacowork-logist-agent) — код,
-данные, все прогоны и история изменений (~100 коммитов).
+тестовые данные, результаты всех прогонов и история изменений.
 
 **Что сдаётся**
 

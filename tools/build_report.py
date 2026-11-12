@@ -112,6 +112,7 @@ pre { overflow-wrap: anywhere; word-break: break-word; background: #f3f6f9; bord
 pre code { background: none; padding: 0; }
 hr { border: 0; border-top: 1px solid #d5dde6; margin: 14px 0; }
 img, svg { max-width: 100%; }
+td:first-child code { overflow-wrap: normal; white-space: nowrap; }
 table.wide { font-size: 6.8pt; }
 table.wide td, table.wide th { overflow-wrap: anywhere; padding: 2px 3px; }
 .diagram { text-align: center; page-break-before: always; page-break-inside: avoid; page-break-after: always; }
