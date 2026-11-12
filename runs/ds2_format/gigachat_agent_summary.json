@@ -1,37 +1,37 @@
 [
   {
     "run": 1,
-    "time_total_s": 8.5,
-    "time_llm_s": 8.31,
+    "time_total_s": 11.48,
+    "time_llm_s": 11.29,
     "called_skill": true,
     "full_match_rate": 1.0,
     "cloud_form_ok": true,
     "invented_values": 0,
-    "content_hash": "a3f4dbf3265c7d8e",
+    "content_hash": "dbb4776b88ff9af4",
     "answer_ok": true,
     "followups": "3/3"
   },
   {
     "run": 2,
-    "time_total_s": 7.55,
-    "time_llm_s": 7.38,
+    "time_total_s": 8.0,
+    "time_llm_s": 7.81,
     "called_skill": true,
     "full_match_rate": 1.0,
     "cloud_form_ok": true,
     "invented_values": 0,
-    "content_hash": "a3f4dbf3265c7d8e",
+    "content_hash": "dbb4776b88ff9af4",
     "answer_ok": true,
     "followups": "3/3"
   },
   {
     "run": 3,
-    "time_total_s": 9.24,
-    "time_llm_s": 9.07,
+    "time_total_s": 10.84,
+    "time_llm_s": 10.62,
     "called_skill": true,
     "full_match_rate": 1.0,
     "cloud_form_ok": true,
     "invented_values": 0,
-    "content_hash": "a3f4dbf3265c7d8e",
+    "content_hash": "dbb4776b88ff9af4",
     "answer_ok": true,
     "followups": "3/3"
   }
