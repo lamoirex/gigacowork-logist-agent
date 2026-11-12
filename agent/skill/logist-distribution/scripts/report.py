@@ -11,6 +11,7 @@ import json
 import os
 
 import engine as E
+import letters as L
 
 FIXED_TS = dt.datetime(2000, 1, 1)
 HEADER_FILL = "1F4E79"
@@ -197,6 +198,22 @@ def write_excel(res: E.Result, path: str, eng: E.Engine, inputs_desc: list, warn
         row[1].fill = block if row[1].value == E.BLOCK else check
 
     # --- Журнал решений
+    # --- Письма логистам (черновики)
+    ws = wb.create_sheet("Письма логистам")
+    ws.append(["Логист", "ФИО", "Новые заказы", "Повторные ФУЛ", "Тема", "Текст письма"])
+    for lt in L.build_letters(res, eng):
+        ws.append(
+            [
+                lt["logist"],
+                lt["fio"],
+                ", ".join(lt["new_orders"]) or "—",
+                ", ".join(lt["repeat_orders"]) or "—",
+                lt["subject"],
+                lt["body"],
+            ]
+        )
+    _style_sheet(ws, [16, 30, 26, 18, 48, 100], U)
+
     ws = wb.create_sheet("Журнал решений")
     ws.append(
         [
@@ -302,7 +319,7 @@ BLOCK_KINDS = (
 )
 
 
-def chat_message(res: E.Result, out_name: str) -> str:
+def chat_message(res: E.Result, out_name: str, letters_count: int = 0) -> str:
     """Короткий ответ в чат по шаблону. Чем он короче, тем меньше модель может исказить при пересказе."""
     s = res.stats
     lines = [
@@ -311,6 +328,7 @@ def chat_message(res: E.Result, out_name: str) -> str:
         f"• Повторных отправок: {s['repeats_cloud'] + s['repeats_batch']} (заказ уже в Cloud — {s['repeats_cloud']}, дубль в пачке — {s['repeats_batch']})",
         f"• Возможных пропусков: {s['possible_misses']}",
         f"• Вопросов, требующих решения: {s['attention_total']} (срочных — {s['attention_blocking']})",
+        f"• Черновиков писем логистам: {letters_count}",
     ]
     blocking = [a for a in res.attention if a.priority == E.BLOCK]
     if blocking:
@@ -322,15 +340,17 @@ def chat_message(res: E.Result, out_name: str) -> str:
         other = [a for a in blocking if a.kind not in {k for k, _ in BLOCK_KINDS}]
         if other:
             lines.append(f"  – другое: {len(other)}")
-    lines.append("Подробности — на листах «Требует внимания» и «Журнал решений».")
+    lines.append("Подробности — на листах «Требует внимания», «Журнал решений» и «Письма логистам».")
     return "\n".join(lines)
 
 
 def write_summary(res: E.Result, path: str, out_xlsx: str, eng: E.Engine, inputs_desc, warnings):
+    letters = L.build_letters(res, eng)
     data = {
         "result_file": out_xlsx,
         "stats": res.stats,
-        "chat_message": chat_message(res, os.path.basename(out_xlsx)),
+        "chat_message": chat_message(res, os.path.basename(out_xlsx), len(letters)),
+        "letters": letters,
         "attention": [a.__dict__ for a in res.attention],
         "inputs": dict(inputs_desc),
         "warnings": warnings,
