@@ -123,6 +123,23 @@ def _match_header_row(row, spec):
                     break
             if fld in columns:
                 break
+    # Второй проход: заголовок содержит синоним целиком («Поставщик (контрагент)»).
+    # Только для длинных синонимов и только если кандидат единственный.
+    for fld, fspec in spec.items():
+        if fld in columns:
+            continue
+        hits = set()
+        for syn in fspec["synonyms"]:
+            key = norm_header(syn)
+            if len(key) < 5:
+                continue
+            for idx, h in enumerate(norm):
+                if idx not in used and key in h:
+                    hits.add(idx)
+        if len(hits) == 1:
+            idx = hits.pop()
+            columns[fld], titles[fld] = idx, to_str(row[idx])
+            used.add(idx)
     return columns, titles
 
 
