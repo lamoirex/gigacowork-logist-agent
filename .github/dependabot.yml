@@ -1,0 +1,18 @@
+# Обновления зависимостей раз в неделю: Python-пакеты, GitHub Actions, базовый Docker-образ
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-tools:
+        patterns: ["pytest*", "ruff", "markdown"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
