@@ -394,8 +394,9 @@ class Engine:
         if pref and pref.available:
             e, rule = pref, "История работы с поставщиком"
             reason = (
-                f"{self.short(e)}: вёл(а) {hist[e.fio]} из {total} заказов поставщика «{self.sup_name(f)}» в Cloud "
-                f"(история в группе: {hist_txt}); работает, в работе {e.load}"
+                f"{self.short(e)}: назначен(а) по истории работы с поставщиком — вёл(а) {hist[e.fio]} из {total} "
+                f"заказов поставщика «{self.sup_name(f)}» в Cloud (история в группе: {hist_txt}); работает, "
+                f"сейчас в работе {e.load}. При выборе по истории загрузка сотрудников не сравнивается"
             )
         else:
             e = self.least_loaded(group, emps)
