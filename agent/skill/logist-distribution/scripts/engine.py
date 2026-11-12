@@ -306,3 +306,108 @@ class Engine:
         if f.is_china:
             return "VED", f"{f.method}, страна «{f.country}» (Китай) → ВЭД"
         return "MULTI", f"{f.method}, страна «{f.country}» (не Китай) → мультимодальные перевозки"
+
+    # ---------- логист
+    def _candidates_text(self, group, emps):
+        parts = []
+        for e in sorted((e for e in emps if e.group == group and not e.excluded), key=lambda e: e.sort_key):
+            st = f"в работе {e.load}" if e.available else e.unavailable_reason
+            parts.append(f"{self.short(e)}: {st}")
+        return "; ".join(parts)
+
+    def least_loaded(self, group, emps):
+        pool = [e for e in emps if e.group == group and not e.excluded and e.available]
+        if not pool:
+            return None
+        return sorted(pool, key=lambda e: (e.load, e.load_batch) + e.sort_key)[0]
+
+    def choose_logist(self, f: Ful, group, emps, cloud, pins, commit=True):
+        """-> (employee | None, rule, reason). При commit=False ничего не меняет (для пропусков)."""
+        pin_key = (f.supplier_key, group)
+        if f.supplier_key and pin_key in pins:
+            e = pins[pin_key]
+            return (
+                e,
+                "Один поставщик — один логист",
+                (
+                    f"{self.short(e)}: поставщик «{self.sup_name(f)}» в этой пачке уже закреплён за логистом "
+                    f"{self.short(e)} (один поставщик — один логист); в работе {e.load}"
+                ),
+            )
+
+        members = [e for e in emps if e.group == group and not e.excluded]
+        hist = Counter()
+        last = {}
+        total = 0
+        if f.supplier_key:
+            for cr in cloud:
+                if cr.supplier_key != f.supplier_key:
+                    continue
+                total += 1
+                if cr.employee and cr.employee in members:
+                    hist[cr.employee.fio] += 1
+                    d = cr.ul_date or N.parse_datetime("01.01.1900")
+                    if cr.employee.fio not in last or d > last[cr.employee.fio]:
+                        last[cr.employee.fio] = d
+        pref = None
+        if hist:
+            by_fio = {e.fio: e for e in members}
+            ranked = sorted(
+                hist, key=lambda fio: (-hist[fio], -last[fio].timestamp(), by_fio[fio].load) + by_fio[fio].sort_key
+            )
+            pref = by_fio[ranked[0]]
+            hist_txt = ", ".join(f"{self.short(by_fio[x])} — {hist[x]}" for x in ranked)
+
+        if pref and pref.available:
+            e, rule = pref, "История работы с поставщиком"
+            reason = (
+                f"{self.short(e)}: вёл(а) {hist[e.fio]} из {total} заказов поставщика «{self.sup_name(f)}» в Cloud "
+                f"(история в группе: {hist_txt}); работает, в работе {e.load}"
+            )
+        else:
+            e = self.least_loaded(group, emps)
+            if pref:
+                why = f"предпочтительный по истории {self.short(pref)} ({hist[pref.fio]} из {total} заказов) недоступен: {pref.unavailable_reason}"
+                rule = "Наименее загруженный: предпочтительный недоступен"
+            elif total:
+                why = f"заказы поставщика в Cloud вели не сотрудники группы «{self.group_title(group)}»"
+                rule = "Наименее загруженный: нет истории в группе"
+            elif not f.supplier_key:
+                why = "поставщик не указан, история неизвестна"
+                rule = "Наименее загруженный: поставщик не указан"
+            else:
+                why = "новый поставщик — в Cloud нет его заказов"
+                rule = "Наименее загруженный: новый поставщик"
+            if e is None:
+                return (
+                    None,
+                    "Нет доступных логистов в группе",
+                    (
+                        f"{why}; в группе «{self.group_title(group)}» нет доступных логистов — заказ остаётся без логиста, "
+                        f"в другую группу не передаётся"
+                    ),
+                )
+            reason = f"{why}; назначен наименее загруженный в группе: {self.short(e)} (в работе {e.load})"
+
+        if commit and e is not None:
+            if f.supplier_key:
+                pins[pin_key] = e
+        return e, rule, reason
+
+    # ---------- формат имени для Cloud
+    def prepare_short_names(self, emps, cloud):
+        styles = Counter(N.short_style(cr.logist_raw) for cr in cloud if cr.logist_raw)
+        styles.pop("other", None)
+        self.style = styles.most_common(1)[0][0] if styles else "surname_i"
+        for e in emps:
+            if e.cloud_names:
+                # самое частое написание; при равенстве — по алфавиту
+                e.short_name = sorted(e.cloud_names.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+            else:
+                e.short_name = N.format_short(e.fio, self.style)
+
+    def sup_name(self, f):
+        return self.cloud_supplier_names.get(f.supplier_key) or f.supplier or self.U
+
+    def short(self, e):
+        return getattr(e, "short_name", None) or e.fio
